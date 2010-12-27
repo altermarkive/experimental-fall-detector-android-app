@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+This code is free  software: you can redistribute it and/or  modify it under the
+terms of the GNU Lesser General Public License as published by the Free Software
+Foundation,  either version  3 of  the License,  or (at  your option)  any later
+version.
+
+This code  is distributed in the  hope that it  will be useful, but  WITHOUT ANY
+WARRANTY; without even the implied warranty  of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
+
+You should have  received a copy of the GNU  Lesser General Public License along
+with code. If not, see http://www.gnu.org/licenses/.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="guardian">
+
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="9"/>
+    <!-- Using network location provider -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Using GPS location provider -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Using calling a phone -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Using WiFi state toggling -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- Using WebView -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Using speaker volume control -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Using address book -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Using caller notification and identification -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Using bootstrap notification -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Using SMS receiving -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- Using SMS sending -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/icon.png"
+        android:label="@string/app"
+        android:theme="@android:style/Theme.Light">
+        <activity
+            android:name="guardian.About"
+            android:label="@string/app"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="guardian.Settings"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="guardian.Contact"
+            android:label="@string/contact"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="guardian.Contact" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="guardian.Signals" />
+
+        <receiver
+            android:name="guardian.Boot"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Boot Receiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="guardian.Messenger"
+            android:enabled="true"
+            android:exported="true"
+            android:label="SMS Responder">
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="guardian.Telephony"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Call Responder">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="guardian.Guardian"
+            android:exported="false"
+            android:label="Guardian Service">
+            <intent-filter>
+                <action android:name="guardian.Guardian" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
