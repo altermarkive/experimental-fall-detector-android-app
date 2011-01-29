@@ -1,0 +1,29 @@
+{
+  "sensors":{
+    "1":[{"interval":0}],
+    "2":[{"interval":0}],
+    "3":[{"interval":0}],
+    "4":[{"interval":0}],
+    "5":[{"interval":0}],
+    "6":[{"interval":0}],
+    "7":[{"interval":0}],
+    "8":[{"interval":0}],
+    "9":[{"interval":0}],
+    "10":[{"interval":0}],
+    "11":[{"interval":0}],
+    "14":[{"interval":0}],
+    "15":[{"interval":0}],
+    "16":[{"interval":0}],
+    "17":[{"interval":0}],
+    "18":[{"interval":0}],
+    "19":[{"interval":0}],
+    "20":[{"interval":0}],
+    "21":[{"interval":0}]
+  },
+  "storage":{
+    "interval":0
+  },
+  "upload":{
+    "url":""
+  }
+}
