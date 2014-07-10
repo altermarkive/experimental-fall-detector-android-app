@@ -85,6 +85,7 @@ public class Data implements Runnable {
         advance();
     }
 
+    @SuppressWarnings("unused")
     public void dispatch(int index, byte[] exchange, int size) {
         if (storing != 0) {
             Batch batch = find(index);
@@ -96,6 +97,7 @@ public class Data implements Runnable {
     }
 
     public void run() {
+        //noinspection InfiniteLoopStatement
         while (true) {
             while (storing != 0 && 1 < queue.size()) {
                 Batch batch = queue.remove(0);

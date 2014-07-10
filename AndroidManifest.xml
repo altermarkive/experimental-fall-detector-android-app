@@ -22,6 +22,10 @@ with code. If not, see http://www.gnu.org/licenses/.
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Using the storage -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Using the body sensors -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <!-- Using the forced wake state -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="false"

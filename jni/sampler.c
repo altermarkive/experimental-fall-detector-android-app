@@ -80,6 +80,7 @@ int TypeToSize(int Type) {
         case SENSOR_TYPE_PROXIMITY:
         case SENSOR_TYPE_RELATIVE_HUMIDITY:
         case SENSOR_TYPE_AMBIENT_TEMPERATURE:
+        case SENSOR_TYPE_HEART_RATE:
             return sizeof(int64_t) + sizeof(float);
         case SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED:
         case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
@@ -120,6 +121,7 @@ int SampleHandler(int FD, int Events, void *Data) {
             case SENSOR_TYPE_GAME_ROTATION_VECTOR:
             case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
             case SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR:
+            case SENSOR_TYPE_HEART_RATE:
                 (*JNI)->SetByteArrayRegion(JNI, State->Exchange, sizeof(int64_t),
                                            Info->Size - sizeof(int64_t),
                                            (jbyte *) Event.data);

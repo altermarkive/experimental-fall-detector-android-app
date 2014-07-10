@@ -31,6 +31,7 @@ import java.util.List;
 public class Report {
     private final static String TAG = Report.class.getName();
 
+    @SuppressWarnings("unused")
     public static String probe(Context context) throws JSONException {
         SensorManager manager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> list = manager.getSensorList(Sensor.TYPE_ALL);

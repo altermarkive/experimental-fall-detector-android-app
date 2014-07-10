@@ -41,6 +41,7 @@ with code. If not, see http://www.gnu.org/licenses/.
 #define SENSOR_TYPE_STEP_DETECTOR               18
 #define SENSOR_TYPE_STEP_COUNTER                19
 #define SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR 20
+#define SENSOR_TYPE_HEART_RATE                  21
 
 typedef struct {
     int Index;

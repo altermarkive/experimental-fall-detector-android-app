@@ -78,6 +78,7 @@ public class Upload implements Runnable {
 
     @Override
     public void run() {
+        //noinspection InfiniteLoopStatement
         while (true) {
             Item item;
             try {
@@ -134,6 +135,7 @@ public class Upload implements Runnable {
         OutputStream output = connection.getOutputStream();
         output.write(content);
         InputStream input = connection.getInputStream();
+        //noinspection ResultOfMethodCallIgnored
         input.skip(input.available());
         item.terminate();
     }

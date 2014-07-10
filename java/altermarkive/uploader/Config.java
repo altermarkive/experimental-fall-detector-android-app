@@ -30,7 +30,7 @@ public class Config {
     private final static String TAG = Config.class.getName();
 
     private final static int MIN_TYPE = 1;
-    private final static int MAX_TYPE = 20;
+    private final static int MAX_TYPE = 21;
     private final Sampler sampler;
     private SparseArray<Integer[]> sampling;
     private int storing;
@@ -118,6 +118,7 @@ public class Config {
         return url;
     }
 
+    @SuppressWarnings("unused")
     public int[] initiate(int[] types, String[] vendors, String[] names, int[] delays, float[] resolutions, int[] sizes) {
         SparseIntArray indices = new SparseIntArray();
         for (int i = MIN_TYPE; i <= MAX_TYPE; i++) {

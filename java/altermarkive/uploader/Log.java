@@ -23,26 +23,31 @@ public class Log {
         Storage.appendText(LOG_FILE, entry);
     }
 
+    @SuppressWarnings("unused")
     public static void v(String tag, String entry) {
         android.util.Log.v(tag, entry);
         log("VERBOSE", tag, entry);
     }
 
+    @SuppressWarnings("unused")
     public static void d(String tag, String entry) {
         android.util.Log.d(tag, entry);
         log("DEBUG", tag, entry);
     }
 
+    @SuppressWarnings("unused")
     public static void i(String tag, String entry) {
         android.util.Log.i(tag, entry);
         log("INFO", tag, entry);
     }
 
+    @SuppressWarnings("unused")
     public static void w(String tag, String entry) {
         android.util.Log.w(tag, entry);
         log("WARN", tag, entry);
     }
 
+    @SuppressWarnings("unused")
     public static void e(String tag, String entry) {
         android.util.Log.e(tag, entry);
         log("ERROR", tag, entry);

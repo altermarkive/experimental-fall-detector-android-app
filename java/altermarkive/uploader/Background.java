@@ -31,10 +31,12 @@ public class Background extends Service {
         String app = getResources().getString(R.string.app);
         String info = app + " is active.";
         long now = System.currentTimeMillis();
+        //noinspection deprecation
         Notification notification = new Notification(
                 android.R.drawable.stat_sys_warning, info, now);
         Intent about = new Intent(this, Main.class);
         PendingIntent pending = PendingIntent.getActivity(this, 0, about, 0);
+        //noinspection deprecation
         notification.setLatestEventInfo(this, app, info, pending);
         startForeground(1, notification);
         return (START_STICKY);
