@@ -11,6 +11,11 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 -->
+<!-- convert -background none icon.svg -resize 36x36 ../mipmap-ldpi/ic_launcher.png -->
+<!-- convert -background none icon.svg -resize 48x48 ../mipmap-mdpi/ic_launcher.png -->
+<!-- convert -background none icon.svg -resize 72x72 ../mipmap-hdpi/ic_launcher.png -->
+<!-- convert -background none icon.svg -resize 96x96 ../mipmap-xhdpi/ic_launcher.png -->
+<!-- convert -background none icon.svg -resize 144x144 ../mipmap-xxhdpi/ic_launcher.png -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
   <path d="M90,0 A90,90 0 0,0 0,90 L0,422 A90,90 0 0,0 90,512 L422,512 A90,90 0 0,0 512,422 L512,90 A90,90 0 0,0 422,0 Z" fill="#FFFFFF"/>
