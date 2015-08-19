@@ -16,6 +16,16 @@ with code. If not, see http://www.gnu.org/licenses/.
 
 StateStructure *State = NULL;
 
+jlong CallSystemCurrentTimeMillis(JNIEnv *JNI) {
+    jclass SystemClass = (*JNI)->FindClass(JNI, "java/lang/System");
+    jmethodID SystemCurrentTimeMillis = (*JNI)->GetStaticMethodID(JNI, SystemClass,
+                                                                  "currentTimeMillis", "()J");
+    if (0 == SystemCurrentTimeMillis) {
+        return 0;
+    }
+    return (*JNI)->CallStaticLongMethod(JNI, SystemClass, SystemCurrentTimeMillis);
+}
+
 jobject CallSelfConfig(JNIEnv *JNI, jobject Self) {
     jclass SelfClass = (*JNI)->GetObjectClass(JNI, Self);
     jmethodID SelfConfig = (*JNI)->GetMethodID(JNI, SelfClass, "config",
@@ -101,8 +111,12 @@ int SampleHandler(int FD, int Events, void *Data) {
     ASensorEvent Event;
     pthread_mutex_lock(&State->Lock);
     while (ASensorEventQueue_getEvents(Info->Queue, &Event, 1) > 0) {
-        (*JNI)->SetByteArrayRegion(JNI, State->Exchange, 0, sizeof(int64_t),
-                                   (jbyte *) &(Event.timestamp));
+        int64_t Stamp = Event.timestamp / 1000;
+        if (0 == State->Shift) {
+            State->Shift = CallSystemCurrentTimeMillis(JNI) * 1000 - Stamp;
+        }
+        Stamp += State->Shift;
+        (*JNI)->SetByteArrayRegion(JNI, State->Exchange, 0, sizeof(int64_t), (jbyte *) &(Stamp));
         switch (Event.type) {
             case SENSOR_TYPE_ACCELEROMETER:
             case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -254,6 +268,7 @@ JNIEXPORT void JNICALL Java_altermarkive_uploader_Sampler_initiate(JNIEnv *JNI, 
     if (NULL == State) {
         State = (StateStructure *) malloc(sizeof(StateStructure));
         State->JNI = JNI;
+        State->Shift = 0;
         QuerySensors();
         QueryConfig(JNI, Self);
         ConfigureSampling(JNI, Self);

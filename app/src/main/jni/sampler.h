@@ -66,6 +66,7 @@ typedef struct {
     int Count;
     int Maximum;
     InfoStructure *Info;
+    int64_t Shift;
 } StateStructure;
 
 #endif //UPLOADER_SAMPLER_H
