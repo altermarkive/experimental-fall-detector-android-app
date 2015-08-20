@@ -53,6 +53,7 @@ typedef struct {
     int Size;
     int Interval;
     ASensorEventQueue *Queue;
+    int64_t Shift;
 } InfoStructure;
 
 typedef struct {
@@ -66,7 +67,6 @@ typedef struct {
     int Count;
     int Maximum;
     InfoStructure *Info;
-    int64_t Shift;
 } StateStructure;
 
 #endif //UPLOADER_SAMPLER_H

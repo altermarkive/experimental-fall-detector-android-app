@@ -112,10 +112,10 @@ int SampleHandler(int FD, int Events, void *Data) {
     pthread_mutex_lock(&State->Lock);
     while (ASensorEventQueue_getEvents(Info->Queue, &Event, 1) > 0) {
         int64_t Stamp = Event.timestamp / 1000;
-        if (0 == State->Shift) {
-            State->Shift = CallSystemCurrentTimeMillis(JNI) * 1000 - Stamp;
+        if (0 == Info->Shift) {
+            Info->Shift = CallSystemCurrentTimeMillis(JNI) * 1000 - Stamp;
         }
-        Stamp += State->Shift;
+        Stamp += Info->Shift;
         (*JNI)->SetByteArrayRegion(JNI, State->Exchange, 0, sizeof(int64_t), (jbyte *) &(Stamp));
         switch (Event.type) {
             case SENSOR_TYPE_ACCELEROMETER:
@@ -171,6 +171,7 @@ void QuerySensors() {
             State->Info[I].Vendor,
             State->Info[I].Name, State->Info[I].Delay,
             State->Info[I].Resolution);
+        State->Info[I].Shift = 0;
     }
 }
 
@@ -268,7 +269,6 @@ JNIEXPORT void JNICALL Java_altermarkive_uploader_Sampler_initiate(JNIEnv *JNI, 
     if (NULL == State) {
         State = (StateStructure *) malloc(sizeof(StateStructure));
         State->JNI = JNI;
-        State->Shift = 0;
         QuerySensors();
         QueryConfig(JNI, Self);
         ConfigureSampling(JNI, Self);
