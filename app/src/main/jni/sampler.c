@@ -106,16 +106,16 @@ int TypeToSize(int Type) {
 }
 
 int SampleHandler(int FD, int Events, void *Data) {
-    InfoStructure *Info = (InfoStructure *) Data;
     JNIEnv *JNI = State->JNI;
+    jlong Now = CallSystemCurrentTimeMillis(JNI) * 1000;
+    InfoStructure *Info = (InfoStructure *) Data;
     ASensorEvent Event;
     pthread_mutex_lock(&State->Lock);
     while (ASensorEventQueue_getEvents(Info->Queue, &Event, 1) > 0) {
-        int64_t Stamp = Event.timestamp / 1000;
         if (0 == Info->Shift) {
-            Info->Shift = CallSystemCurrentTimeMillis(JNI) * 1000 - Stamp;
+            continue;
         }
-        Stamp += Info->Shift;
+        int64_t Stamp = Info->Shift + Event.timestamp / 1000;
         (*JNI)->SetByteArrayRegion(JNI, State->Exchange, 0, sizeof(int64_t), (jbyte *) &(Stamp));
         switch (Event.type) {
             case SENSOR_TYPE_ACCELEROMETER:
@@ -148,6 +148,7 @@ int SampleHandler(int FD, int Events, void *Data) {
             default:
                 break;
         }
+        Info->Shift = Now - Event.timestamp / 1000;
         CallDataDispatch(JNI, State->Data, Info->Index, State->Exchange, Info->Size);
     }
     pthread_mutex_unlock(&State->Lock);
