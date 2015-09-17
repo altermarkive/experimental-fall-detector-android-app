@@ -21,8 +21,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class Upload implements Runnable {
     private final static String TAG = Upload.class.getName();
@@ -60,7 +58,7 @@ public class Upload implements Runnable {
         //noinspection InfiniteLoopStatement
         while (true) {
             String[] files = Storage.list(filter);
-            if (files != null) {
+            if (files != null && 0 < files.length) {
                 Arrays.sort(files);
                 String item = files[0];
                 int hold = 1;
@@ -89,6 +87,14 @@ public class Upload implements Runnable {
                 if (item != null) {
                     String message = String.format("Failed to upload, skipping '%s'", item);
                     Log.e(TAG, message);
+                }
+            } else {
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException exception) {
+                    String trace = Log.getStackTraceString(exception);
+                    String message = String.format("Interrupted while waiting:\n%s", trace);
+                    Log.i(TAG, message);
                 }
             }
         }
@@ -119,8 +125,8 @@ public class Upload implements Runnable {
             return false;
         }
         if (url == null || url.length() == 0) {
-            String message = String.format("Uploading skipped (URL not configured)", thing);
-            Log.i(TAG, "Uploading skipped (URL not configured)");
+            String message = String.format("Uploading '%s' skipped (URL not configured)", thing);
+            Log.i(TAG, message);
             return false;
         }
         String message = String.format("Uploading '%s' to %s", thing, url);

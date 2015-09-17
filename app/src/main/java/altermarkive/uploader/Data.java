@@ -24,14 +24,12 @@ public class Data implements Runnable {
     private final static String TAG = Data.class.getName();
     public final static String MIME = "application/zip";
 
-    private final Sampler sampler;
     private final Vector<Batch> queue = new Vector<Batch>();
     private int[] portions = new int[0];
     private int storing = 0;
     private long schedule = 0;
 
-    public Data(Sampler sampler) {
-        this.sampler = sampler;
+    public Data() {
         new Thread(this).start();
     }
 

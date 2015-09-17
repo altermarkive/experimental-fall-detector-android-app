@@ -146,17 +146,6 @@ public class Storage {
         return result;
     }
 
-    public static boolean rename(String ante, String post) {
-        File anteFile = new File(PREFIX, ante);
-        File postFile = new File(PREFIX, post);
-        if (!anteFile.renameTo(postFile)) {
-            String message = String.format("Failed to rename a file from '%s' to '%s'", ante, post);
-            android.util.Log.d(TAG, message);
-            return false;
-        }
-        return true;
-    }
-
     public static boolean delete(String file) {
         if (!new File(PREFIX, file).delete()) {
             String message = String.format("Failed to delete '%s'", file);
@@ -164,10 +153,6 @@ public class Storage {
             return false;
         }
         return true;
-    }
-
-    public static String[] list() {
-        return PREFIX.list();
     }
 
     public static String[] list(FilenameFilter filter) {

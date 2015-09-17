@@ -34,7 +34,6 @@ public class Config {
     private final Sampler sampler;
     private SparseArray<Integer[]> sampling;
     private int storing;
-    private String url;
 
     public Config(Sampler sampler) {
         this.sampler = sampler;
@@ -68,8 +67,8 @@ public class Config {
                 storage.put("interval", storing);
             }
             JSONObject upload = json.getJSONObject("upload");
-            if (storage != null) {
-                url = upload.getString("url");
+            if (upload != null) {
+                Upload.instance().initiate(upload.getString("url"));
             }
             Storage.writeText("preferences.json", json.toString());
         } catch (JSONException exception) {
@@ -103,7 +102,6 @@ public class Config {
     private void reset() {
         sampling = new SparseArray<Integer[]>();
         storing = 0;
-        url = "";
     }
 
     private int sampling(int type, int index) {
@@ -112,10 +110,6 @@ public class Config {
             return 0;
         }
         return intervals[index];
-    }
-
-    public String url() {
-        return url;
     }
 
     @SuppressWarnings("unused")

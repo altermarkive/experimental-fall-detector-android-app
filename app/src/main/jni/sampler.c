@@ -148,9 +148,9 @@ int SampleHandler(int FD, int Events, void *Data) {
             default:
                 break;
         }
-        Info->Shift = Now - Event.timestamp / 1000;
         CallDataDispatch(JNI, State->Data, Info->Index, State->Exchange, Info->Size);
     }
+    Info->Shift = Now - Event.timestamp / 1000;
     pthread_mutex_unlock(&State->Lock);
     return (1);
 }

@@ -31,13 +31,11 @@ public class Sampler {
     private Context context;
     private Config config;
     private Data data;
-    private Upload upload;
 
     private Sampler(Context context) {
         this.context = context;
         config = new Config(this);
-        data = new Data(this);
-        upload = Upload.instance();
+        data = new Data();
     }
 
     public Context context() {
@@ -51,10 +49,6 @@ public class Sampler {
 
     public Data data() {
         return data;
-    }
-
-    public Upload upload() {
-        return upload;
     }
 
     public void initiate(Context context) {
