@@ -1,4 +1,4 @@
-# Experimental Fall-Detector Android App
+# Experimental Fall Detector Android App
 
 ## INTRODUCTION
 
@@ -15,9 +15,7 @@ In short: When a fall is detected the app calls the configured phone number.
 * For optimal performance (to reduce the number of false alarms and the number of undetected falls) carry the device close to your waist (a trouser pocket, a belt clip, etc.).
 * Keep your device charged at all times.
 
-![Main screen](doc/screenshot.1.png)
-
-![Configuration screen](doc/screenshot.2.png)
+See the screenshot of [the main screen](doc/screenshot.1.png) and [the configuration screen](doc/screenshot.2.png).
 
 ## CREDITS
 
