@@ -11,12 +11,13 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.app.Activity;
 import android.os.Bundle;
 
 public class Signals extends Activity {
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.surface);

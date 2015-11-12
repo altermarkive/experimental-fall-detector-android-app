@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -42,6 +42,7 @@ public class About extends Activity implements View.OnClickListener {
         dialog.show();
     }
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Detector.initiate(this);
@@ -57,6 +58,7 @@ public class About extends Activity implements View.OnClickListener {
         eula(this);
     }
 
+    @Override
     public void onClick(View view) {
         Intent intent;
         switch (view.getId()) {

@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.content.Context;
 import android.content.Intent;

@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.content.Context;
 import android.content.Intent;
@@ -90,6 +90,7 @@ public class Positioning implements LocationListener {
         wifi.setWifiEnabled(true);
     }
 
+    @SuppressWarnings("deprecation")
     private static void enforceGPS(Context context) {
         LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -132,6 +133,7 @@ public class Positioning implements LocationListener {
         }
     }
 
+    @Override
     public void onLocationChanged(Location location) {
         enforce(context);
         synchronized (lock) {
@@ -176,14 +178,17 @@ public class Positioning implements LocationListener {
         }
     }
 
+    @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         enforce(context);
     }
 
+    @Override
     public void onProviderEnabled(String provider) {
         enforce(context);
     }
 
+    @Override
     public void onProviderDisabled(String provider) {
         enforce(context);
     }

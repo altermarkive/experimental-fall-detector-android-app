@@ -21,9 +21,9 @@ with code. If not, see http://www.gnu.org/licenses/.
 
 #define LOG(level, ...) __android_log_print(level, "DETECTOR", __VA_ARGS__)
 
-#define INTERVAL_MS guardian_Detector_INTERVAL_MS
-#define N guardian_Detector_N
-#define SIZE_BUFFER guardian_Detector_SIZE
+#define INTERVAL_MS altermarkive_guardian_Detector_INTERVAL_MS
+#define N altermarkive_guardian_Detector_N
+#define SIZE_BUFFER altermarkive_guardian_Detector_SIZE
 #define SPAN_MAXMIN (100 / INTERVAL_MS)
 #define SPAN_FALLING (1000 / INTERVAL_MS)
 #define SPAN_IMPACT (2000 / INTERVAL_MS)
@@ -38,11 +38,11 @@ with code. If not, see http://www.gnu.org/licenses/.
 
 #define G 1.0
 
-#define FALLING_WAIST_SV_TOT guardian_Detector_FALLING_WAIST_SV_TOT
-#define IMPACT_WAIST_SV_TOT guardian_Detector_IMPACT_WAIST_SV_TOT
-#define IMPACT_WAIST_SV_D guardian_Detector_IMPACT_WAIST_SV_D
-#define IMPACT_WAIST_SV_MAXMIN guardian_Detector_IMPACT_WAIST_SV_MAXMIN
-#define IMPACT_WAIST_Z_2 guardian_Detector_IMPACT_WAIST_Z_2
+#define FALLING_WAIST_SV_TOT altermarkive_guardian_Detector_FALLING_WAIST_SV_TOT
+#define IMPACT_WAIST_SV_TOT altermarkive_guardian_Detector_IMPACT_WAIST_SV_TOT
+#define IMPACT_WAIST_SV_D altermarkive_guardian_Detector_IMPACT_WAIST_SV_D
+#define IMPACT_WAIST_SV_MAXMIN altermarkive_guardian_Detector_IMPACT_WAIST_SV_MAXMIN
+#define IMPACT_WAIST_Z_2 altermarkive_guardian_Detector_IMPACT_WAIST_Z_2
 #define LYING_AVERAGE_Z_LPF 0.5
 
 typedef struct {

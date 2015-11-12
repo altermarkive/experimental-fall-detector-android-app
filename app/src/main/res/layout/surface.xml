@@ -15,7 +15,7 @@ with code. If not, see http://www.gnu.org/licenses/.
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
-    <guardian.Surface
+    <altermarkive.guardian.Surface
         android:id="@+id/surface"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />

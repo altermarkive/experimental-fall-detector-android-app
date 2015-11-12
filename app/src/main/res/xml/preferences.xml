@@ -17,7 +17,7 @@ with code. If not, see http://www.gnu.org/licenses/.
             android:name="@string/summary"
             android:key="@string/contact"
             android:title="@string/title">
-            <intent android:action="guardian.Contact" />
+            <intent android:action="altermarkive.guardian.Contact" />
         </Preference>
     </PreferenceCategory>
 </PreferenceScreen>

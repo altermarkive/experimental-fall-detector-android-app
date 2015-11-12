@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 public class Telephony extends BroadcastReceiver {
     private static int undo = -1;
 
+    @Override
     public void onReceive(Context context, Intent intent) {
         TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         switch (manager.getCallState()) {

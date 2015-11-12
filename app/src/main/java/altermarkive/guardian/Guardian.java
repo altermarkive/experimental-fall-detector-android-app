@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.os.IBinder;
 
 public class Guardian extends Service {
+    @Override
     public void onCreate() {
         Context context = getApplicationContext();
         Positioning.initiate(context);
@@ -32,6 +33,8 @@ public class Guardian extends Service {
         context.startService(intent);
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
     public int onStartCommand(Intent intent, int flags, int startID) {
         long now = System.currentTimeMillis();
         Notification notification = new Notification(
@@ -43,6 +46,7 @@ public class Guardian extends Service {
         return (START_STICKY);
     }
 
+    @Override
     public IBinder onBind(Intent intent) {
         return (null);
     }

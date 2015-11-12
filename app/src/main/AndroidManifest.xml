@@ -10,11 +10,10 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
--->
+--><!--suppress DeprecatedClassUsageInspection -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="guardian">
+    package="altermarkive.guardian">
 
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="9"/>
     <!-- Using network location provider -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Using GPS location provider -->
@@ -40,11 +39,11 @@ with code. If not, see http://www.gnu.org/licenses/.
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/icon.png"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app"
         android:theme="@android:style/Theme.Light">
         <activity
-            android:name="guardian.About"
+            android:name="altermarkive.guardian.About"
             android:label="@string/app"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -53,21 +52,21 @@ with code. If not, see http://www.gnu.org/licenses/.
             </intent-filter>
         </activity>
         <activity
-            android:name="guardian.Settings"
+            android:name="altermarkive.guardian.Settings"
             android:screenOrientation="portrait" />
         <activity
-            android:name="guardian.Contact"
+            android:name="altermarkive.guardian.Contact"
             android:label="@string/contact"
             android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="guardian.Contact" />
+                <action android:name="altermarkive.guardian.Contact" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="guardian.Signals" />
+        <activity android:name="altermarkive.guardian.Signals" />
 
         <receiver
-            android:name="guardian.Boot"
+            android:name="altermarkive.guardian.Boot"
             android:enabled="true"
             android:exported="true"
             android:label="Boot Receiver">
@@ -76,7 +75,7 @@ with code. If not, see http://www.gnu.org/licenses/.
             </intent-filter>
         </receiver>
         <receiver
-            android:name="guardian.Messenger"
+            android:name="altermarkive.guardian.Messenger"
             android:enabled="true"
             android:exported="true"
             android:label="SMS Responder">
@@ -85,7 +84,7 @@ with code. If not, see http://www.gnu.org/licenses/.
             </intent-filter>
         </receiver>
         <receiver
-            android:name="guardian.Telephony"
+            android:name="altermarkive.guardian.Telephony"
             android:enabled="true"
             android:exported="true"
             android:label="Call Responder">
@@ -95,7 +94,7 @@ with code. If not, see http://www.gnu.org/licenses/.
         </receiver>
 
         <service
-            android:name="guardian.Guardian"
+            android:name="altermarkive.guardian.Guardian"
             android:exported="false"
             android:label="Guardian Service">
             <intent-filter>

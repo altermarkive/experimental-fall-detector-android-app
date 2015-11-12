@@ -15,7 +15,7 @@ with code. If not, see http://www.gnu.org/licenses/.
 // Digital filters (low-pass & high-pass) designed by mkfilter/mkshape/gencode A.J. Fisher
 // http://www-users.cs.york.ac.uk/~fisher/mkfilter/
 
-#include "guardian_Detector.h"
+#include "altermarkive_guardian_Detector.h"
 #include <string.h>
 #include <android/looper.h>
 #include <math.h>
@@ -207,9 +207,9 @@ void InitiateBuffer(StateStructure *State) {
 }
 
 void InitiateSamples(StateStructure *State) {
-    State->X = State->Buffer + guardian_Detector_OFFSET_X;
-    State->Y = State->Buffer + guardian_Detector_OFFSET_Y;
-    State->Z = State->Buffer + guardian_Detector_OFFSET_Z;
+    State->X = State->Buffer + altermarkive_guardian_Detector_OFFSET_X;
+    State->Y = State->Buffer + altermarkive_guardian_Detector_OFFSET_Y;
+    State->Z = State->Buffer + altermarkive_guardian_Detector_OFFSET_Z;
 }
 
 void InitiateResampling(StateStructure *State) {
@@ -218,12 +218,12 @@ void InitiateResampling(StateStructure *State) {
 }
 
 void InitiateFiltering(StateStructure *State) {
-    State->X_LPF = State->Buffer + guardian_Detector_OFFSET_X_LPF;
-    State->Y_LPF = State->Buffer + guardian_Detector_OFFSET_Y_LPF;
-    State->Z_LPF = State->Buffer + guardian_Detector_OFFSET_Z_LPF;
-    State->X_HPF = State->Buffer + guardian_Detector_OFFSET_X_HPF;
-    State->Y_HPF = State->Buffer + guardian_Detector_OFFSET_Y_HPF;
-    State->Z_HPF = State->Buffer + guardian_Detector_OFFSET_Z_HPF;
+    State->X_LPF = State->Buffer + altermarkive_guardian_Detector_OFFSET_X_LPF;
+    State->Y_LPF = State->Buffer + altermarkive_guardian_Detector_OFFSET_Y_LPF;
+    State->Z_LPF = State->Buffer + altermarkive_guardian_Detector_OFFSET_Z_LPF;
+    State->X_HPF = State->Buffer + altermarkive_guardian_Detector_OFFSET_X_HPF;
+    State->Y_HPF = State->Buffer + altermarkive_guardian_Detector_OFFSET_Y_HPF;
+    State->Z_HPF = State->Buffer + altermarkive_guardian_Detector_OFFSET_Z_HPF;
     Fill(State->XLPFXV, 0, FILTER_NZEROS + 1, 0);
     Fill(State->XLPFYV, 0, FILTER_NPOLES + 1, 0);
     Fill(State->YLPFXV, 0, FILTER_NZEROS + 1, 0);
@@ -239,22 +239,22 @@ void InitiateFiltering(StateStructure *State) {
 }
 
 void InitiateDeltas(StateStructure *State) {
-    State->X_MAXMIN = State->Buffer + guardian_Detector_OFFSET_X_D;
-    State->Y_MAXMIN = State->Buffer + guardian_Detector_OFFSET_Y_D;
-    State->Z_MAXMIN = State->Buffer + guardian_Detector_OFFSET_Z_D;
+    State->X_MAXMIN = State->Buffer + altermarkive_guardian_Detector_OFFSET_X_D;
+    State->Y_MAXMIN = State->Buffer + altermarkive_guardian_Detector_OFFSET_Y_D;
+    State->Z_MAXMIN = State->Buffer + altermarkive_guardian_Detector_OFFSET_Z_D;
 }
 
 void InitiateSV(StateStructure *State) {
-    State->SV_TOT = State->Buffer + guardian_Detector_OFFSET_SV_TOT;
-    State->SV_D = State->Buffer + guardian_Detector_OFFSET_SV_D;
-    State->SV_MAXMIN = State->Buffer + guardian_Detector_OFFSET_SV_MAXMIN;
-    State->Z_2 = State->Buffer + guardian_Detector_OFFSET_Z_2;
+    State->SV_TOT = State->Buffer + altermarkive_guardian_Detector_OFFSET_SV_TOT;
+    State->SV_D = State->Buffer + altermarkive_guardian_Detector_OFFSET_SV_D;
+    State->SV_MAXMIN = State->Buffer + altermarkive_guardian_Detector_OFFSET_SV_MAXMIN;
+    State->Z_2 = State->Buffer + altermarkive_guardian_Detector_OFFSET_Z_2;
 }
 
 void InitiateEvents(StateStructure *State) {
-    State->Falling = State->Buffer + guardian_Detector_OFFSET_FALLING;
-    State->Impact = State->Buffer + guardian_Detector_OFFSET_IMPACT;
-    State->Lying = State->Buffer + guardian_Detector_OFFSET_LYING;
+    State->Falling = State->Buffer + altermarkive_guardian_Detector_OFFSET_FALLING;
+    State->Impact = State->Buffer + altermarkive_guardian_Detector_OFFSET_IMPACT;
+    State->Lying = State->Buffer + altermarkive_guardian_Detector_OFFSET_LYING;
 }
 
 void InitiateProtection(StateStructure *State) {
@@ -280,13 +280,13 @@ void InitiateSensor(StateStructure *State) {
     ASensorEventQueue_setEventRate(State->Queue, Sensor, INTERVAL_MS * 1000);
 }
 
-JNIEXPORT void JNICALL Java_guardian_Detector_initiate(JNIEnv *JNI, jclass SelfClass,
+JNIEXPORT void JNICALL Java_altermarkive_guardian_Detector_initiate(JNIEnv *JNI, jclass SelfClass,
                                                                     jobject Context) {
     if (NULL == State) {
         StateStructure *Blank = (StateStructure *) malloc(sizeof(StateStructure));
         Blank->JNI = JNI;
         Blank->Context = (*JNI)->NewGlobalRef(JNI, Context);
-        Blank->AlarmClass = (*JNI)->FindClass(JNI, "guardian/Alarm");
+        Blank->AlarmClass = (*JNI)->FindClass(JNI, "altermarkive/guardian/Alarm");
         Blank->AlarmClass = (*JNI)->NewGlobalRef(JNI, Blank->AlarmClass);
         Blank->AlarmCall = (*JNI)->GetStaticMethodID(JNI, Blank->AlarmClass, "call",
                                                      "(Landroid/content/Context;)V");
@@ -303,13 +303,13 @@ JNIEXPORT void JNICALL Java_guardian_Detector_initiate(JNIEnv *JNI, jclass SelfC
     }
 }
 
-JNIEXPORT void JNICALL Java_guardian_Detector_acquire(JNIEnv *JNI, jclass Self) {
+JNIEXPORT void JNICALL Java_altermarkive_guardian_Detector_acquire(JNIEnv *JNI, jclass Self) {
     if (NULL != State) {
         pthread_mutex_lock(&State->Lock);
     }
 }
 
-JNIEXPORT jdoubleArray JNICALL Java_guardian_Detector_buffer(JNIEnv *JNI,
+JNIEXPORT jdoubleArray JNICALL Java_altermarkive_guardian_Detector_buffer(JNIEnv *JNI,
                                                                           jclass Self) {
     if (NULL != State) {
         (*JNI)->ReleaseDoubleArrayElements(JNI, State->BufferArray, State->Buffer, JNI_COMMIT);
@@ -318,14 +318,14 @@ JNIEXPORT jdoubleArray JNICALL Java_guardian_Detector_buffer(JNIEnv *JNI,
     return NULL;
 }
 
-JNIEXPORT jint JNICALL Java_guardian_Detector_position(JNIEnv *JNI, jclass Self) {
+JNIEXPORT jint JNICALL Java_altermarkive_guardian_Detector_position(JNIEnv *JNI, jclass Self) {
     if (NULL != State) {
         return State->Position;
     }
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_guardian_Detector_release(JNIEnv *JNI, jclass Self) {
+JNIEXPORT void JNICALL Java_altermarkive_guardian_Detector_release(JNIEnv *JNI, jclass Self) {
     if (NULL != State) {
         pthread_mutex_unlock(&State->Lock);
     }

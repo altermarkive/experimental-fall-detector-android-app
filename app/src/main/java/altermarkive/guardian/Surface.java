@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -143,15 +143,18 @@ public class Surface extends SurfaceView implements Callback, Runnable, OnTouchL
         setOnTouchListener(this);
     }
 
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         running = true;
         thread = new Thread(this);
         thread.start();
     }
 
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (null != thread) {
             running = false;
@@ -163,6 +166,7 @@ public class Surface extends SurfaceView implements Callback, Runnable, OnTouchL
         }
     }
 
+    @Override
     public boolean onTouch(View view, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             int replacing = selected + CHARTS.length;
@@ -176,6 +180,7 @@ public class Surface extends SurfaceView implements Callback, Runnable, OnTouchL
         return (true);
     }
 
+    @Override
     public void run() {
         while (running) {
             Detector.acquire();

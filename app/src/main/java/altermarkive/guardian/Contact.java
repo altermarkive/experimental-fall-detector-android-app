@@ -11,7 +11,7 @@ PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
 You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 */
-package guardian;
+package altermarkive.guardian;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -49,6 +49,7 @@ public class Contact extends Activity implements View.OnClickListener {
         return (PhoneNumberUtils.compare(contact, expected));
     }
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.contact);
@@ -63,6 +64,7 @@ public class Contact extends Activity implements View.OnClickListener {
         button.setOnClickListener(this);
     }
 
+    @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.search:
@@ -80,6 +82,7 @@ public class Contact extends Activity implements View.OnClickListener {
         }
     }
 
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
