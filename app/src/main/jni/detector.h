@@ -19,7 +19,11 @@ with code. If not, see http://www.gnu.org/licenses/.
 #include <android/sensor.h>
 #include <pthread.h>
 
+#if defined(DEBUG)
 #define LOG(level, ...) __android_log_print(level, "DETECTOR", __VA_ARGS__)
+#else
+#define LOG(level, ...)
+#endif
 
 #define INTERVAL_MS altermarkive_guardian_Detector_INTERVAL_MS
 #define N altermarkive_guardian_Detector_N

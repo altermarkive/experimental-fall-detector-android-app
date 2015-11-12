@@ -12,7 +12,7 @@ You should have  received a copy of the GNU  Lesser General Public License along
 with code. If not, see http://www.gnu.org/licenses/.
 --><!--suppress DeprecatedClassUsageInspection -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="altermarkive.guardian">
+    package="altermarkive.guardian" android:versionCode="1" android:versionName="1">
 
     <!-- Using network location provider -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
