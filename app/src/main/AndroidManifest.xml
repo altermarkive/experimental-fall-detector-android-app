@@ -31,9 +31,9 @@ with code. If not, see http://www.gnu.org/licenses/.
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app"
-        android:theme="@android:style/Theme.Black">
+        android:theme="@android:style/Theme.Light">
         <activity
-            android:name=".Main"
+            android:name="altermarkive.uploader.Main"
             android:label="@string/app"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -41,6 +41,7 @@ with code. If not, see http://www.gnu.org/licenses/.
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <receiver
             android:name="altermarkive.uploader.Boot"
             android:enabled="true"
@@ -59,6 +60,7 @@ with code. If not, see http://www.gnu.org/licenses/.
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
+
         <service
             android:name="altermarkive.uploader.Background"
             android:exported="false"
@@ -67,6 +69,7 @@ with code. If not, see http://www.gnu.org/licenses/.
                 <action android:name="altermarkive.uploader.Background" />
             </intent-filter>
         </service>
+        <activity android:name="altermarkive.uploader.Selector" />
     </application>
 
 </manifest>

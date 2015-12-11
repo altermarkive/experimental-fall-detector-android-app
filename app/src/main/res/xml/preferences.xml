@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+This code is free  software: you can redistribute it and/or  modify it under the
+terms of the GNU Lesser General Public License as published by the Free Software
+Foundation,  either version  3 of  the License,  or (at  your option)  any later
+version.
+
+This code  is distributed in the  hope that it  will be useful, but  WITHOUT ANY
+WARRANTY; without even the implied warranty  of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser  General Public License for more details.
+
+You should have  received a copy of the GNU  Lesser General Public License along
+with code. If not, see http://www.gnu.org/licenses/.
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Sensor Data Sampling">
+        <PreferenceScreen
+            android:summary="Sampling periods for each of the sensors"
+            android:title="Sensor Sampling Periods">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:targetClass="altermarkive.uploader.Selector"
+                android:targetPackage="altermarkive.uploader" />
+        </PreferenceScreen>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Sensor Data Storage">
+        <EditTextPreference
+            android:inputType="numberDecimal"
+            android:key="@string/storing"
+            android:summary="Sensor data is flushed to the SD Card at this period (in milliseconds)"
+            android:title="@string/storing" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Sensor Data Upload">
+        <EditTextPreference
+            android:inputType="textUri"
+            android:key="Upload URL"
+            android:summary="URL to upload the sensor data to (with HTTP POST)"
+            android:title="Upload URL" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -15,18 +15,19 @@ package altermarkive.uploader;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class Main extends Activity {
+import java.util.List;
+
+public class Main extends PreferenceActivity {
+    @SuppressWarnings("deprecation")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Load the layout
-        setContentView(R.layout.main);
-        // Show the device ID
-        TextView id = (TextView) findViewById(R.id.id);
-        id.setText(Report.id(this));
-        // Run the background service
+        addPreferencesFromResource(R.xml.preferences);
+        Toast.makeText(this, "You must restart the devices for the changed settings to take effect", Toast.LENGTH_LONG).show();
         Background.initiate(this);
     }
 }

@@ -14,4 +14,9 @@ with code. If not, see http://www.gnu.org/licenses/.
 <resources>
     <string name="app">Sensor Uploader</string>
     <string name="info">Device ID</string>
+    <string name="naming" formatted="false">Sensor Name %02d#%02d</string>
+    <string name="sampling" formatted="false">Sensor Sampling %02d#%02d</string>
+    <string name="storing">Storage Period</string>
+    <string name="uploading">Upload URL</string>
+    <string name="selector">Sensor Sampling</string>
 </resources>

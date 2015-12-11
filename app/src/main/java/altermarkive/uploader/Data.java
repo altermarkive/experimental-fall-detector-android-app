@@ -104,7 +104,6 @@ public class Data implements Runnable {
         ZipOutputStream stream = new ZipOutputStream(zipped);
         try {
             zipTextFile(stream, "device.json");
-            zipTextFile(stream, "preferences.json");
             zipTextFile(stream, Log.LOG_FILE);
             Storage.writeText(Log.LOG_FILE, "");
             batch.zip(stream);

@@ -13,7 +13,10 @@ with code. If not, see http://www.gnu.org/licenses/.
 */
 package altermarkive.uploader;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.preference.PreferenceManager;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
@@ -29,87 +32,40 @@ import java.util.Iterator;
 public class Config {
     private final static String TAG = Config.class.getName();
 
-    private final static int MIN_TYPE = 1;
-    private final static int MAX_TYPE = 21;
+    public final static int MIN_TYPE = 1;
+    public final static int MAX_TYPE = 21;
     private final Sampler sampler;
-    private SparseArray<Integer[]> sampling;
-    private int storing;
 
     public Config(Sampler sampler) {
         this.sampler = sampler;
-        reset();
-        String preferences = Storage.readText("preferences.json");
-        if (preferences == null) {
-            preferences = defaults(sampler);
-            if (preferences == null) {
-                return;
-            }
-        }
-        JSONObject json;
-        try {
-            json = new JSONObject(preferences);
-            JSONObject sensors = json.getJSONObject("sensors");
-            Iterator<String> keys = sensors.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                JSONArray array = sensors.getJSONArray(key);
-                Integer[] intervals = new Integer[array.length()];
-                for (int i = 0; i < intervals.length; i++) {
-                    JSONObject item = array.getJSONObject(i);
-                    intervals[i] = item.getInt("interval");
-                }
-                sampling.put(Integer.valueOf(key), intervals);
-            }
-            JSONObject storage = json.getJSONObject("storage");
-            if (storage != null) {
-                storing = storage.getInt("interval");
-                storing = storing < 60000 ? 60000 : storing;
-                storage.put("interval", storing);
-            }
-            JSONObject upload = json.getJSONObject("upload");
-            if (upload != null) {
-                Upload.instance().initiate(upload.getString("url"));
-            }
-            Storage.writeText("preferences.json", json.toString());
-        } catch (JSONException exception) {
-            String trace = Log.getStackTraceString(exception);
-            String message = String.format("Failed to read preferences:\n%s", trace);
-            Log.e(TAG, message);
-            reset();
-        }
     }
 
-    private String defaults(Sampler sampler) {
-        Resources resource = sampler.context().getResources();
-        InputStream input = resource.openRawResource(R.raw.preferences);
-        try {
-            int size = input.available();
-            byte[] bytes = new byte[size];
-            if (input.read(bytes) != size) {
-                Log.e(TAG, "Size mismatch while reading default preferences");
-                return null;
-            }
-            input.close();
-            return new String(bytes);
-        } catch (IOException exception) {
-            String trace = Log.getStackTraceString(exception);
-            String message = String.format("Failed to read resources:\n%s", trace);
-            Log.e(TAG, message);
-            return null;
-        }
-    }
-
-    private void reset() {
-        sampling = new SparseArray<Integer[]>();
-        storing = 0;
+    private void naming(int type, int index, String name) {
+        Context context = sampler.context();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String key = String.format(context.getString(R.string.naming), type, index);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(key, name);
+        editor.commit();
     }
 
     private int sampling(int type, int index) {
-        Integer[] intervals = sampling.get(type);
-        if (intervals == null || intervals.length <= index) {
-            return 0;
-        }
-        return intervals[index];
+        Context context = sampler.context();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String key = String.format(context.getString(R.string.sampling), type, index);
+        int sampling = Integer.parseInt(preferences.getString(key, "0"));
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(key, Integer.toString(sampling));
+        editor.commit();
+        return sampling;
+    }
+
+    private int storing() {
+        Context context = sampler.context();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String key = context.getString(R.string.storing);
+        int storing = Integer.parseInt(preferences.getString(key, "0"));
+        return storing;
     }
 
     @SuppressWarnings("unused")
@@ -131,6 +87,8 @@ public class Config {
             int index = indices.get(types[i]);
             intervals[i] = sampling(types[i], index);
             indices.put(types[i], index + 1);
+            // Update the name of the sensor
+            naming(types[i], index, names[i]);
             // Clip interval based on minimum delay reported
             if (0 < intervals[i]) {
                 intervals[i] = Math.max(intervals[i], delays[i] / 1000);
@@ -138,7 +96,7 @@ public class Config {
                 Log.i(TAG, message);
             }
         }
-        sampler.data().initiate(sizes, intervals, storing);
+        sampler.data().initiate(sizes, intervals, storing());
         try {
             String report = Report.report(sampler.context(), types, vendors, names, resolutions, delays, null, null);
             Storage.writeText("device.json", report);
