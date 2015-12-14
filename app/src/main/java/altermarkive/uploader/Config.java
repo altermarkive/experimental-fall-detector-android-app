@@ -38,6 +38,10 @@ public class Config {
 
     public Config(Sampler sampler) {
         this.sampler = sampler;
+        Context context = sampler.context();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String url = preferences.getString(context.getString(R.string.uploading), null);
+        Upload.instance().initiate(url);
     }
 
     private void naming(int type, int index, String name) {

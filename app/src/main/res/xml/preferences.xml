@@ -32,8 +32,8 @@ with code. If not, see http://www.gnu.org/licenses/.
     <PreferenceCategory android:title="Sensor Data Upload">
         <EditTextPreference
             android:inputType="textUri"
-            android:key="Upload URL"
+            android:key="@string/uploading"
             android:summary="URL to upload the sensor data to (with HTTP POST)"
-            android:title="Upload URL" />
+            android:title="@string/uploading" />
     </PreferenceCategory>
 </PreferenceScreen>
