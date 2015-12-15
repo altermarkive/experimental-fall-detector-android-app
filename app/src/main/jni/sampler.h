@@ -60,7 +60,7 @@ typedef struct {
     pthread_mutex_t Lock;
     JNIEnv *JNI;
     jobject Data;
-    jbyteArray Exchange;
+    jdoubleArray Exchange;
     ASensorManager *Manager;
     ASensorList Sensors;
     ALooper *Looper;

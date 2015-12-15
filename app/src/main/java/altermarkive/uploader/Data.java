@@ -15,6 +15,8 @@ package altermarkive.uploader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -51,10 +53,16 @@ public class Data implements Runnable {
     }
 
     @SuppressWarnings("unused")
-    public void dispatch(int index, byte[] exchange, int size) {
+    public void dispatch(int type, int index, long stamp, double[] values, int axes) {
         if (storing != 0) {
+            ByteBuffer bytes = ByteBuffer.allocate(8 + 4 * axes);
+            bytes.order(ByteOrder.LITTLE_ENDIAN);
+            bytes.putLong(0, stamp);
+            for (int i = 0; i < axes; i++) {
+                bytes.putFloat(8 + i * 4, (float) values[i]);
+            }
             Batch batch = find(index);
-            batch.append(index, exchange, size);
+            batch.append(index, bytes.array(), 8 + 4 * axes);
             synchronized (this) {
                 notifyAll();
             }

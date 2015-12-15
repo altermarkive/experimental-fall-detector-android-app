@@ -62,14 +62,15 @@ jobject CallSelfData(JNIEnv *JNI, jobject Self) {
     return (*JNI)->CallObjectMethod(JNI, Self, SelfData);
 }
 
-void CallDataDispatch(JNIEnv *JNI, jobject Data, jint Index, jbyteArray Exchange, jint Size) {
+void CallDataDispatch(JNIEnv *JNI, jobject Data, jint Type, jint Index, jlong Stamp,
+                      jdoubleArray Values, jint Axes) {
     jclass DataClass = (*JNI)->GetObjectClass(JNI, Data);
-    jmethodID DataDispatch = (*JNI)->GetMethodID(JNI, DataClass, "dispatch", "(I[BI)V");
+    jmethodID DataDispatch = (*JNI)->GetMethodID(JNI, DataClass, "dispatch", "(IIJ[DI)V");
     if (0 == DataDispatch) {
         LOG(ANDROID_LOG_ERROR, "Failed to call altermarkive.uploader.Data.dispatch");
         return;
     }
-    (*JNI)->CallVoidMethod(JNI, Data, DataDispatch, Index, Exchange, Size);
+    (*JNI)->CallVoidMethod(JNI, Data, DataDispatch, Type, Index, Stamp, Values, Axes);
 }
 
 int TypeToSize(int Type) {
@@ -99,7 +100,7 @@ int TypeToSize(int Type) {
         case SENSOR_TYPE_STEP_DETECTOR:
             return sizeof(int64_t);
         case SENSOR_TYPE_STEP_COUNTER:
-            return sizeof(int64_t) + sizeof(uint64_t);
+            return sizeof(int64_t) + sizeof(float);
         default:
             return 0;
     }
@@ -116,7 +117,9 @@ int SampleHandler(int FD, int Events, void *Data) {
             continue;
         }
         int64_t Stamp = Info->Shift + Event.timestamp / 1000;
-        (*JNI)->SetByteArrayRegion(JNI, State->Exchange, 0, sizeof(int64_t), (jbyte *) &(Stamp));
+        int I;
+        float Values[6];
+        jint Count = (Info->Size - sizeof(int64_t)) / sizeof(float);
         switch (Event.type) {
             case SENSOR_TYPE_ACCELEROMETER:
             case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -136,19 +139,19 @@ int SampleHandler(int FD, int Events, void *Data) {
             case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
             case SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR:
             case SENSOR_TYPE_HEART_RATE:
-                (*JNI)->SetByteArrayRegion(JNI, State->Exchange, sizeof(int64_t),
-                                           Info->Size - sizeof(int64_t),
-                                           (jbyte *) Event.data);
+                for (I = 0; I < Count; I++) {
+                    Values[I] = Event.data[I];
+                }
+                (*JNI)->SetDoubleArrayRegion(JNI, State->Exchange, 0, Count, (jbyte *) Values);
                 break;
             case SENSOR_TYPE_STEP_COUNTER:
-                (*JNI)->SetByteArrayRegion(JNI, State->Exchange, sizeof(int64_t),
-                                           Info->Size - sizeof(int64_t),
-                                           (jbyte *) &Event.u64.step_counter);
+                Values[0] = Event.u64.step_counter;
+                (*JNI)->SetDoubleArrayRegion(JNI, State->Exchange, 0, Count, (jbyte *) Values);
                 break;
             default:
                 break;
         }
-        CallDataDispatch(JNI, State->Data, Info->Index, State->Exchange, Info->Size);
+        CallDataDispatch(JNI, State->Data, Event.type, Info->Index, Stamp, State->Exchange, Count);
     }
     Info->Shift = Now - Event.timestamp / 1000;
     pthread_mutex_unlock(&State->Lock);
@@ -202,8 +205,9 @@ void QueryConfig(JNIEnv *JNI, jobject Self) {
         DelaysArray[I] = State->Info[I].Delay;
         ResolutionsArray[I] = State->Info[I].Resolution;
         SizesArray[I] = State->Info[I].Size = TypeToSize(State->Info[I].Type);
-        if (State->Maximum < SizesArray[I]) {
-            State->Maximum = SizesArray[I];
+        int Axes = (SizesArray[I] - sizeof(uint64_t)) / sizeof(float);
+        if (State->Maximum < Axes) {
+            State->Maximum = Axes;
         }
     }
 
@@ -240,7 +244,7 @@ void ConfigureSampling(JNIEnv *JNI, jobject Self) {
         LOG(ANDROID_LOG_INFO, "Event queue for sensor #%d created", I);
     }
     State->Data = (*JNI)->NewGlobalRef(JNI, CallSelfData(JNI, Self));
-    State->Exchange = (*JNI)->NewGlobalRef(JNI, (*JNI)->NewByteArray(JNI, State->Maximum));
+    State->Exchange = (*JNI)->NewGlobalRef(JNI, (*JNI)->NewDoubleArray(JNI, State->Maximum));
     pthread_mutex_init(&State->Lock, NULL);
 }
 
