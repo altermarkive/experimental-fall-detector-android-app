@@ -19,7 +19,11 @@ with code. If not, see http://www.gnu.org/licenses/.
 #include <android/sensor.h>
 #include <pthread.h>
 
+#if defined(DEBUG)
 #define LOG(level, ...) __android_log_print(level, "SAMPLER", __VA_ARGS__)
+#else
+#define LOG(level, ...)
+#endif
 
 #define SENSOR_TYPE_ACCELEROMETER                 ASENSOR_TYPE_ACCELEROMETER
 #define SENSOR_TYPE_MAGNETIC_FIELD                ASENSOR_TYPE_MAGNETIC_FIELD
@@ -44,30 +48,30 @@ with code. If not, see http://www.gnu.org/licenses/.
 #define SENSOR_TYPE_HEART_RATE                  21
 
 typedef struct {
-    int Index;
-    int Type;
-    const char *Vendor;
-    const char *Name;
-    int Delay;
-    float Resolution;
-    int Size;
-    int Axes;
-    int Period;
-    ASensorEventQueue *Queue;
-    int64_t Shift;
+   int Index;
+   int Type;
+   const char *Vendor;
+   const char *Name;
+   int Delay;
+   float Resolution;
+   int Size;
+   int Axes;
+   int Period;
+   ASensorEventQueue *Queue;
+   int64_t Shift;
 } InfoStructure;
 
 typedef struct {
-    pthread_mutex_t Lock;
-    JNIEnv *JNI;
-    jobject Data;
-    jfloatArray Exchange;
-    ASensorManager *Manager;
-    ASensorList Sensors;
-    ALooper *Looper;
-    int Count;
-    int Maximum;
-    InfoStructure *Info;
+   pthread_mutex_t Lock;
+   JNIEnv *JNI;
+   jobject Data;
+   jfloatArray Exchange;
+   ASensorManager *Manager;
+   ASensorList Sensors;
+   ALooper *Looper;
+   int Count;
+   int Maximum;
+   InfoStructure *Info;
 } StateStructure;
 
 #endif //UPLOADER_SAMPLER_H
