@@ -56,7 +56,7 @@ public class Data implements Runnable {
     @SuppressWarnings("unused")
     public synchronized void dispatch(int type, int index, long stamp, float[] values, int axes) {
         if (storing != 0) {
-            bytes.reset();
+            bytes.position(0);
             bytes.putLong(stamp);
             for (int i = 0; i < axes; i++) {
                 bytes.putFloat(values[i]);

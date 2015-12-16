@@ -65,7 +65,7 @@ jobject CallSelfData(JNIEnv *JNI, jobject Self) {
 void CallDataDispatch(JNIEnv *JNI, jobject Data, jint Type, jint Index, jlong Stamp,
                       jfloatArray Values, jint Axes) {
     jclass DataClass = (*JNI)->GetObjectClass(JNI, Data);
-    jmethodID DataDispatch = (*JNI)->GetMethodID(JNI, DataClass, "dispatch", "(IIJ[DI)V");
+    jmethodID DataDispatch = (*JNI)->GetMethodID(JNI, DataClass, "dispatch", "(IIJ[FI)V");
     if (0 == DataDispatch) {
         LOG(ANDROID_LOG_ERROR, "Failed to call altermarkive.uploader.Data.dispatch");
         return;
