@@ -26,6 +26,7 @@ public class Data implements Runnable {
     private final static String TAG = Data.class.getName();
     public final static String MIME = "application/zip";
 
+    private final ByteBuffer bytes = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
     private final Vector<Batch> queue = new Vector<Batch>();
     private int[] portions = new int[0];
     private int storing = 0;
@@ -35,14 +36,14 @@ public class Data implements Runnable {
         new Thread(this).start();
     }
 
-    public void initiate(int[] sizes, int[] intervals, int storing) {
+    public void initiate(int[] sizes, int[] periods, int storing) {
         this.storing = 0;
         // Calculate the batch portions
         int[] portions = new int[sizes.length];
         Arrays.fill(portions, 0);
         for (int i = 0; i < sizes.length; i++) {
-            if (intervals[i] != 0) {
-                portions[i] = sizes[i] * (int) Math.ceil((double) storing / (double) intervals[i]);
+            if (periods[i] != 0) {
+                portions[i] = sizes[i] * (int) Math.ceil((double) storing / (double) periods[i]);
             }
         }
         // Initiate the batch queue
@@ -53,16 +54,15 @@ public class Data implements Runnable {
     }
 
     @SuppressWarnings("unused")
-    public void dispatch(int type, int index, long stamp, double[] values, int axes) {
+    public synchronized void dispatch(int type, int index, long stamp, float[] values, int axes) {
         if (storing != 0) {
-            ByteBuffer bytes = ByteBuffer.allocate(8 + 4 * axes);
-            bytes.order(ByteOrder.LITTLE_ENDIAN);
-            bytes.putLong(0, stamp);
+            bytes.reset();
+            bytes.putLong(stamp);
             for (int i = 0; i < axes; i++) {
-                bytes.putFloat(8 + i * 4, (float) values[i]);
+                bytes.putFloat(values[i]);
             }
             Batch batch = find(index);
-            batch.append(index, bytes.array(), 8 + 4 * axes);
+            batch.append(index, bytes.array(), bytes.position());
             synchronized (this) {
                 notifyAll();
             }

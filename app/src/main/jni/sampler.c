@@ -63,7 +63,7 @@ jobject CallSelfData(JNIEnv *JNI, jobject Self) {
 }
 
 void CallDataDispatch(JNIEnv *JNI, jobject Data, jint Type, jint Index, jlong Stamp,
-                      jdoubleArray Values, jint Axes) {
+                      jfloatArray Values, jint Axes) {
     jclass DataClass = (*JNI)->GetObjectClass(JNI, Data);
     jmethodID DataDispatch = (*JNI)->GetMethodID(JNI, DataClass, "dispatch", "(IIJ[DI)V");
     if (0 == DataDispatch) {
@@ -73,7 +73,7 @@ void CallDataDispatch(JNIEnv *JNI, jobject Data, jint Type, jint Index, jlong St
     (*JNI)->CallVoidMethod(JNI, Data, DataDispatch, Type, Index, Stamp, Values, Axes);
 }
 
-int TypeToSize(int Type) {
+int TypeToAxes(int Type) {
     switch (Type) {
         case SENSOR_TYPE_ACCELEROMETER:
         case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -84,7 +84,7 @@ int TypeToSize(int Type) {
         case SENSOR_TYPE_ROTATION_VECTOR:
         case SENSOR_TYPE_GAME_ROTATION_VECTOR:
         case SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR:
-            return sizeof(int64_t) + 3 * sizeof(float);
+            return 3;
         case SENSOR_TYPE_LIGHT:
         case SENSOR_TYPE_PRESSURE:
         case SENSOR_TYPE_TEMPERATURE:
@@ -92,18 +92,22 @@ int TypeToSize(int Type) {
         case SENSOR_TYPE_RELATIVE_HUMIDITY:
         case SENSOR_TYPE_AMBIENT_TEMPERATURE:
         case SENSOR_TYPE_HEART_RATE:
-            return sizeof(int64_t) + sizeof(float);
+        case SENSOR_TYPE_STEP_COUNTER:
+            return 1;
         case SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED:
         case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
-            return sizeof(int64_t) + 6 * sizeof(float);
+            return 6;
         case SENSOR_TYPE_SIGNIFICANT_MOTION:
         case SENSOR_TYPE_STEP_DETECTOR:
-            return sizeof(int64_t);
-        case SENSOR_TYPE_STEP_COUNTER:
-            return sizeof(int64_t) + sizeof(float);
+            return 0;
         default:
             return 0;
     }
+}
+
+int TypeToSize(int Type) {
+    int Axes = TypeToAxes(Type);
+    return sizeof(int64_t) + Axes * sizeof(float);
 }
 
 int SampleHandler(int FD, int Events, void *Data) {
@@ -118,8 +122,7 @@ int SampleHandler(int FD, int Events, void *Data) {
         }
         int64_t Stamp = Info->Shift + Event.timestamp / 1000;
         int I;
-        float Values[6];
-        jint Count = (Info->Size - sizeof(int64_t)) / sizeof(float);
+        jfloat Values[6];
         switch (Event.type) {
             case SENSOR_TYPE_ACCELEROMETER:
             case SENSOR_TYPE_MAGNETIC_FIELD:
@@ -139,19 +142,20 @@ int SampleHandler(int FD, int Events, void *Data) {
             case SENSOR_TYPE_GYROSCOPE_UNCALIBRATED:
             case SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR:
             case SENSOR_TYPE_HEART_RATE:
-                for (I = 0; I < Count; I++) {
+                for (I = 0; I < Info->Axes; I++) {
                     Values[I] = Event.data[I];
                 }
-                (*JNI)->SetDoubleArrayRegion(JNI, State->Exchange, 0, Count, (jbyte *) Values);
+                (*JNI)->SetFloatArrayRegion(JNI, State->Exchange, 0, Info->Axes, Values);
                 break;
             case SENSOR_TYPE_STEP_COUNTER:
                 Values[0] = Event.u64.step_counter;
-                (*JNI)->SetDoubleArrayRegion(JNI, State->Exchange, 0, Count, (jbyte *) Values);
+                (*JNI)->SetFloatArrayRegion(JNI, State->Exchange, 0, Info->Axes, Values);
                 break;
             default:
                 break;
         }
-        CallDataDispatch(JNI, State->Data, Event.type, Info->Index, Stamp, State->Exchange, Count);
+        CallDataDispatch(JNI, State->Data, Event.type, Info->Index, Stamp, State->Exchange,
+                         Info->Axes);
     }
     Info->Shift = Now - Event.timestamp / 1000;
     pthread_mutex_unlock(&State->Lock);
@@ -189,11 +193,13 @@ void QueryConfig(JNIEnv *JNI, jobject Self) {
     jintArray Delays = (*JNI)->NewIntArray(JNI, State->Count);
     jfloatArray Resolutions = (*JNI)->NewFloatArray(JNI, State->Count);
     jintArray Sizes = (*JNI)->NewIntArray(JNI, State->Count);
+    jintArray Axes = (*JNI)->NewIntArray(JNI, State->Count);
 
     jint *TypesArray = (*JNI)->GetIntArrayElements(JNI, Types, NULL);
     jint *DelaysArray = (*JNI)->GetIntArrayElements(JNI, Delays, NULL);
     jfloat *ResolutionsArray = (*JNI)->GetFloatArrayElements(JNI, Resolutions, NULL);
     jint *SizesArray = (*JNI)->GetIntArrayElements(JNI, Sizes, NULL);
+    jint *AxesArray = (*JNI)->GetIntArrayElements(JNI, Axes, NULL);
 
     State->Maximum = 0;
     for (I = 0; I < State->Count; I++) {
@@ -205,9 +211,9 @@ void QueryConfig(JNIEnv *JNI, jobject Self) {
         DelaysArray[I] = State->Info[I].Delay;
         ResolutionsArray[I] = State->Info[I].Resolution;
         SizesArray[I] = State->Info[I].Size = TypeToSize(State->Info[I].Type);
-        int Axes = (SizesArray[I] - sizeof(uint64_t)) / sizeof(float);
-        if (State->Maximum < Axes) {
-            State->Maximum = Axes;
+        AxesArray[I] = State->Info[I].Axes = TypeToAxes(State->Info[I].Type);
+        if (State->Maximum < AxesArray[I]) {
+            State->Maximum = AxesArray[I];
         }
     }
 
@@ -215,16 +221,17 @@ void QueryConfig(JNIEnv *JNI, jobject Self) {
     (*JNI)->ReleaseIntArrayElements(JNI, Delays, DelaysArray, 0);
     (*JNI)->ReleaseFloatArrayElements(JNI, Resolutions, ResolutionsArray, 0);
     (*JNI)->ReleaseIntArrayElements(JNI, Sizes, SizesArray, 0);
+    (*JNI)->ReleaseIntArrayElements(JNI, Axes, AxesArray, 0);
 
     jobject Config = CallSelfConfig(JNI, Self);
-    jintArray Intervals = CallConfigInitiate(JNI, Config, Types, Vendors, Names, Delays,
-                                             Resolutions, Sizes);
+    jintArray Periods = CallConfigInitiate(JNI, Config, Types, Vendors, Names, Delays, Resolutions,
+                                           Sizes);
 
-    jint *IntervalsArray = (*JNI)->GetIntArrayElements(JNI, Intervals, NULL);
+    jint *PeriodsArray = (*JNI)->GetIntArrayElements(JNI, Periods, NULL);
     for (I = 0; I < State->Count; I++) {
-        State->Info[I].Interval = IntervalsArray[I];
+        State->Info[I].Period = PeriodsArray[I];
     }
-    (*JNI)->ReleaseIntArrayElements(JNI, Intervals, IntervalsArray, JNI_ABORT);
+    (*JNI)->ReleaseIntArrayElements(JNI, Periods, PeriodsArray, JNI_ABORT);
 }
 
 void ConfigureSampling(JNIEnv *JNI, jobject Self) {
@@ -234,7 +241,7 @@ void ConfigureSampling(JNIEnv *JNI, jobject Self) {
         State->Looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     }
     for (I = 0; I < State->Count; I++) {
-        if (0 == State->Info[I].Interval) {
+        if (0 == State->Info[I].Period) {
             LOG(ANDROID_LOG_INFO, "Event queue for sensor #%d not created", I);
             continue;
         }
@@ -244,29 +251,29 @@ void ConfigureSampling(JNIEnv *JNI, jobject Self) {
         LOG(ANDROID_LOG_INFO, "Event queue for sensor #%d created", I);
     }
     State->Data = (*JNI)->NewGlobalRef(JNI, CallSelfData(JNI, Self));
-    State->Exchange = (*JNI)->NewGlobalRef(JNI, (*JNI)->NewDoubleArray(JNI, State->Maximum));
+    State->Exchange = (*JNI)->NewGlobalRef(JNI, (*JNI)->NewFloatArray(JNI, State->Maximum));
     pthread_mutex_init(&State->Lock, NULL);
 }
 
 void StartSampling() {
     int I;
     for (I = 0; I < State->Count; I++) {
-        if (0 == State->Info[I].Interval) {
+        if (0 == State->Info[I].Period) {
             LOG(ANDROID_LOG_INFO, "Sensor #%d not started", I);
             continue;
         }
-        int32_t Interval = ((int32_t) State->Info[I].Interval) * 1000;
+        int32_t Period = ((int32_t) State->Info[I].Period) * 1000;
         // Enable sampling
         if (ASensorEventQueue_enableSensor(State->Info[I].Queue, State->Sensors[I]) < 0) {
             LOG(ANDROID_LOG_ERROR, "Failed to enable sensor #%d", I);
             continue;
         }
         // To have effect, the setting of the event rate must be after the enabling of the sensor
-        if (ASensorEventQueue_setEventRate(State->Info[I].Queue, State->Sensors[I], Interval) < 0) {
+        if (ASensorEventQueue_setEventRate(State->Info[I].Queue, State->Sensors[I], Period) < 0) {
             LOG(ANDROID_LOG_ERROR, "Failed to set event rate for sensor #%d", I);
             continue;
         }
-        LOG(ANDROID_LOG_INFO, "Sensor #%d started with interval", I);
+        LOG(ANDROID_LOG_INFO, "Sensor #%d started with given period", I);
     }
 }
 

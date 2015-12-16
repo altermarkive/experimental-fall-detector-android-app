@@ -78,8 +78,8 @@ public class Config {
         for (int i = MIN_TYPE; i <= MAX_TYPE; i++) {
             indices.put(i, 0);
         }
-        int[] intervals = new int[types.length];
-        Arrays.fill(intervals, 0);
+        int[] periods = new int[types.length];
+        Arrays.fill(periods, 0);
         for (int i = 0; i < types.length; i++) {
             String identifier = String.format("%d, %s, %s", types[i], vendors[i], names[i]);
             if (types[i] < MIN_TYPE || MAX_TYPE < types[i] || sizes[i] == 0) {
@@ -87,20 +87,20 @@ public class Config {
                 Log.i(TAG, message);
                 continue;
             }
-            // Find the interval and update sensor index
+            // Find the period and update sensor index
             int index = indices.get(types[i]);
-            intervals[i] = sampling(types[i], index);
+            periods[i] = sampling(types[i], index);
             indices.put(types[i], index + 1);
             // Update the name of the sensor
             naming(types[i], index, names[i]);
-            // Clip interval based on minimum delay reported
-            if (0 < intervals[i]) {
-                intervals[i] = Math.max(intervals[i], delays[i] / 1000);
-                String message = String.format("The interval for sensor #%d (%s) is %d", i, identifier, intervals[i]);
+            // Clip period based on minimum delay reported
+            if (0 < periods[i]) {
+                periods[i] = Math.max(periods[i], delays[i] / 1000);
+                String message = String.format("The period for sensor #%d (%s) is %d", i, identifier, periods[i]);
                 Log.i(TAG, message);
             }
         }
-        sampler.data().initiate(sizes, intervals, storing());
+        sampler.data().initiate(sizes, periods, storing());
         try {
             String report = Report.report(sampler.context(), types, vendors, names, resolutions, delays, null, null);
             Storage.writeText("device.json", report);
@@ -109,6 +109,6 @@ public class Config {
             String message = String.format("Failed to report on device specification:\n%s", trace);
             Log.e(TAG, message);
         }
-        return intervals;
+        return periods;
     }
 }

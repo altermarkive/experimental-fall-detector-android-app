@@ -51,7 +51,8 @@ typedef struct {
     int Delay;
     float Resolution;
     int Size;
-    int Interval;
+    int Axes;
+    int Period;
     ASensorEventQueue *Queue;
     int64_t Shift;
 } InfoStructure;
@@ -60,7 +61,7 @@ typedef struct {
     pthread_mutex_t Lock;
     JNIEnv *JNI;
     jobject Data;
-    jdoubleArray Exchange;
+    jfloatArray Exchange;
     ASensorManager *Manager;
     ASensorList Sensors;
     ALooper *Looper;
