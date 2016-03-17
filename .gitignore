@@ -1,5 +1,9 @@
 *.iml
 /local.properties
 .idea/
-build/
+build/generated/
+build/intermediates/
+build/outputs/apk/*unaligned.apk
+build/outputs/logs/
+build/tmp/
 .gradle/
