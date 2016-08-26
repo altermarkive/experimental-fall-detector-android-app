@@ -62,13 +62,10 @@ public class Sampler {
     }
 
     public void initiate(Context context) {
-        if (Wear.detected()) {
-            PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            //noinspection deprecation
-            PowerManager.WakeLock lock = manager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
-            if (!lock.isHeld()) {
-                lock.acquire();
-            }
+        PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock lock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        if (!lock.isHeld()) {
+            lock.acquire();
         }
         initiate();
     }
