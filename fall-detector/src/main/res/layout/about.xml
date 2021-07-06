@@ -12,29 +12,26 @@
 
         <Button
             android:id="@+id/help"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:drawableLeft="@android:drawable/ic_menu_call"
-            android:drawableStart="@android:drawable/ic_menu_call"
             android:text="@string/help" />
 
         <Button
             android:id="@+id/settings"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:drawableLeft="@android:drawable/ic_menu_preferences"
-            android:drawableStart="@android:drawable/ic_menu_preferences"
             android:text="@string/settings" />
     </LinearLayout>
 
     <Button
         android:id="@+id/signals"
+        style="?android:attr/buttonBarButtonStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:drawableLeft="@android:drawable/ic_menu_view"
-        android:drawableStart="@android:drawable/ic_menu_view"
         android:text="@string/signals" />
 
     <WebView
