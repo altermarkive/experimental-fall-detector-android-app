@@ -1,45 +1,77 @@
-package altermarkive.guardian;
+package altermarkive.guardian
 
-import android.content.Context;
-import android.content.Intent;
-import android.media.AudioManager;
-import android.media.SoundPool;
-import android.net.Uri;
-import android.widget.Toast;
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.SoundPool
+import android.os.Build
+import android.util.Log
 
-public class Alarm {
-    private static SoundPool pool = null;
-    private static int id = -1;
+class Alarm private constructor(val context: Guardian) {
+    private var pool: SoundPool
+    private var id: Int
 
-    @SuppressWarnings("deprecation")
-    public static void siren(Context context) {
-        if (null == pool) {
-            pool = new SoundPool(5, AudioManager.STREAM_ALARM, 0);
-        }
-        if (-1 == id) {
-            id = pool.load(context.getApplicationContext(), R.raw.alarm, 1);
-        }
-        loudest(context, AudioManager.STREAM_ALARM);
-        pool.play(id, 1.0f, 1.0f, 1, 3, 1.0f);
-    }
-
-    public static void loudest(Context context, int stream) {
-        AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        int loudest = manager.getStreamMaxVolume(stream);
-        manager.setStreamVolume(stream, loudest, 0);
-    }
-
-    public static void call(Context context) {
-        String contact = Contact.get(context);
-        if (contact != null && !"".equals(contact)) {
-            Toast.makeText(context, "Alerting the emergency phone number", Toast.LENGTH_SHORT).show();
-            Intent call = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact));
-            call.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(call);
-            Telephony.handsfree(context);
+    init {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val audioAttributes: AudioAttributes = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .build()
+            pool = SoundPool.Builder()
+                .setMaxStreams(5)
+                .setAudioAttributes(audioAttributes)
+                .build()
         } else {
-            Toast.makeText(context, "ERROR: Emergency phone number not set", Toast.LENGTH_SHORT).show();
-            siren(context);
+            @Suppress("DEPRECATION")
+            pool = SoundPool(5, AudioManager.STREAM_ALARM, 0)
         }
+        id = pool.load(context.applicationContext, R.raw.alarm, 1)
+    }
+
+    companion object {
+        private var singleton: Alarm? = null
+
+        internal fun instance(context: Guardian): Alarm {
+            var singleton = this.singleton
+            if (singleton == null) {
+                singleton = Alarm(context)
+                this.singleton = singleton
+            }
+            return singleton
+        }
+
+        internal fun siren(context: Context) {
+            loudest(context, AudioManager.STREAM_ALARM)
+            val singleton = this.singleton
+            if (singleton != null) {
+                val pool = singleton.pool
+                pool.play(singleton.id, 1.0f, 1.0f, 1, 3, 1.0f)
+            }
+        }
+
+        internal fun loudest(context: Context, stream: Int) {
+            val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val loudest = manager.getStreamMaxVolume(stream)
+            manager.setStreamVolume(stream, loudest, 0)
+        }
+
+        internal fun alert(context: Context) {
+            val contact = Contact[context]
+            if (contact != null && "" != contact) {
+                Guardian.say(
+                    context,
+                    Log.WARN,
+                    TAG,
+                    "Alerting the emergency phone number ($contact)"
+                )
+                Messenger.sms(context, Contact[context], "Fall Detected")
+                Telephony.call(context, contact)
+            } else {
+                Guardian.say(context, Log.ERROR, TAG, "ERROR: Emergency phone number not set")
+                siren(context)
+            }
+        }
+
+        private val TAG: String = Alarm::class.java.simpleName
     }
 }

@@ -26,3 +26,9 @@ authored by Maarit Kangas, Antti Konttila, Per Lindgren, Ilkka Winblad, Timo Jam
 and published in Gait & Posture 28 (2008) by Elsevier (search for the paper [here](https://scholar.google.nl/scholar?hl=en&q=Comparison+of+low-complexity+fall+detection+algorithms+for+body+attached+accelerometers+Kangas+Konttila+Lindgren+Winblad+Jamsa))
 
 ![Algorithm](doc/GuardianFallDetector.png)
+
+## 2021 UPDATE
+
+The 2010 app was written in Java & C (both integrated via JNI and Android NDK) but I decided to port it to
+Kotlin to learn the language on a practical example. A couple of other aspects had to be updated too,
+including: permissions, image assets, deprecated APIs, theme, action layouts, Gradle files, etc.

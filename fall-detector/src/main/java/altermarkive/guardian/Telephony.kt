@@ -1,83 +1,224 @@
-package altermarkive.guardian;
+package altermarkive.guardian
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.media.AudioManager;
-import android.telephony.TelephonyManager;
-import android.view.KeyEvent;
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.pm.PackageManager
+import android.media.AudioManager
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.net.Uri
+import android.os.Build
+import android.service.notification.NotificationListenerService
+import android.telecom.TelecomManager
+import android.telephony.TelephonyManager
+import android.util.Log
+import android.view.KeyEvent
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import java.io.IOException
+import java.lang.reflect.Method
 
-import java.lang.reflect.Method;
+// See also: https://stackoverflow.com/questions/51871673/how-to-answer-automatically-and-programatically-an-incoming-call-on-android
 
-public class Telephony extends BroadcastReceiver {
-    private static int undo = -1;
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        switch (manager.getCallState()) {
-            case TelephonyManager.CALL_STATE_RINGING:
-                String contact = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+class Telephony : BroadcastReceiver() {
+    @SuppressLint("UnsafeProtectedBroadcastReceiver")
+    override fun onReceive(context: Context, intent: Intent) {
+        val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        when (manager.callState) {
+            TelephonyManager.CALL_STATE_RINGING -> {
+                @Suppress("DEPRECATION")
+                val contact = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
+                Guardian.say(context, Log.WARN, TAG, "Receiving call from ${contact.toString()}")
                 if (Contact.check(context, contact)) {
-                    answer(context);
+                    Guardian.say(context, Log.WARN, TAG, "Answering the call")
+                    answer(context)
                 }
-                break;
-            case TelephonyManager.CALL_STATE_OFFHOOK:
-                handsfree(context);
-                break;
-            case TelephonyManager.CALL_STATE_IDLE:
-                ringing(context);
-                break;
+                return
+            }
+            TelephonyManager.CALL_STATE_OFFHOOK -> {
+                speakerphone(context)
+                return
+            }
+            TelephonyManager.CALL_STATE_IDLE -> {
+                return
+            }
         }
     }
 
-    public static void handsfree(Context context) {
-        AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        manager.setMode(AudioManager.MODE_IN_CALL);
-        manager.setSpeakerphoneOn(true);
-        Alarm.loudest(context, AudioManager.STREAM_VOICE_CALL);
-    }
-
-    public static void silence(Context context) {
-        try {
-            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            Method getITelephony = manager.getClass().getDeclaredMethod("getITelephony");
-            getITelephony.setAccessible(true);
-            Object iTelephony = getITelephony.invoke(manager);
-            Method silenceRinger = iTelephony.getClass().getDeclaredMethod("silenceRinger");
-            silenceRinger.invoke(iTelephony);
-            undo = -1;
-        } catch (Throwable ignored) {
-            AudioManager manager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            undo = manager.getRingerMode();
-            manager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+    companion object {
+        internal fun speakerphone(context: Context) {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.mode = AudioManager.MODE_IN_CALL
+            audioManager.isSpeakerphoneOn = true
+            Alarm.loudest(context, AudioManager.STREAM_VOICE_CALL)
         }
-    }
 
-    public static void ringing(Context context) {
-        if (-1 != undo) {
-            AudioManager manager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            manager.setRingerMode(undo);
+        private fun answer(context: Context) {
+            try {
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                        val telecomManager =
+                            context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+                        if (ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ANSWER_PHONE_CALLS
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            Guardian.say(
+                                context,
+                                Log.ERROR,
+                                TAG,
+                                "ERROR: No permission to accept calls"
+                            )
+                            return
+                        }
+                        @Suppress("DEPRECATION")
+                        telecomManager.acceptRingingCall()
+                    }
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
+                        throughMediaController(context)
+                    }
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT -> {
+                        throughAudioManager(context)
+                    }
+                }
+            } catch (exception: Exception) {
+                throughReceiver(context)
+            }
+            speakerphone(context)
         }
-    }
 
-
-    private static void answer(Context context) {
-        silence(context);
-        try {
-            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            Method getITelephony = manager.getClass().getDeclaredMethod("getITelephony");
-            getITelephony.setAccessible(true);
-            Object iTelephony = getITelephony.invoke(manager);
-            Method answerRingingCall = iTelephony.getClass().getDeclaredMethod("answerRingingCall");
-            answerRingingCall.invoke(iTelephony);
-        } catch (Throwable throwable) {
-            Intent down = new Intent(Intent.ACTION_MEDIA_BUTTON);
-            down.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK));
-            context.sendOrderedBroadcast(down, "android.permission.CALL_PRIVILEGED");
-            Intent up = new Intent(Intent.ACTION_MEDIA_BUTTON);
-            up.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK));
-            context.sendOrderedBroadcast(up, "android.permission.CALL_PRIVILEGED");
+        private fun getTelephonyService(context: Context): Any? {
+            val telephonyManager =
+                context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            try {
+                val method: Method = Class.forName(telephonyManager.javaClass.name)
+                    .getDeclaredMethod("getITelephony")
+                method.isAccessible = true
+                return method.invoke(telephonyManager)
+            } catch (exception: Exception) {
+                Log.e(TAG, exception.stackTraceToString())
+            }
+            return null
         }
+
+        private fun throughTelephonyService(context: Context) {
+            val telephonyService = getTelephonyService(context)
+            if (telephonyService != null) {
+                val silenceRinger = telephonyService.javaClass.getDeclaredMethod("silenceRinger")
+                silenceRinger.invoke(telephonyService)
+                val answerRingingCall =
+                    telephonyService.javaClass.getDeclaredMethod("answerRingingCall")
+                answerRingingCall.invoke(telephonyService)
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.KITKAT)
+        private fun throughAudioManager(context: Context) {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val downEvent = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK)
+            val upEvent = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK)
+            audioManager.dispatchMediaKeyEvent(downEvent)
+            audioManager.dispatchMediaKeyEvent(upEvent)
+        }
+
+        private fun throughReceiver(context: Context) {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            try {
+                throughTelephonyService(context)
+            } catch (exception: Exception) {
+                @Suppress("DEPRECATION")
+                val broadcastConnected = ("HTC".equals(Build.MANUFACTURER, ignoreCase = true)
+                        && !audioManager.isWiredHeadsetOn)
+                if (broadcastConnected) {
+                    broadcastHeadsetConnected(context)
+                }
+                try {
+                    Runtime.getRuntime().exec("input keyevent " + KeyEvent.KEYCODE_HEADSETHOOK)
+                } catch (exception: IOException) {
+                    throughPhoneHeadsetHook(context)
+                } finally {
+                    if (broadcastConnected) {
+                        broadcastHeadsetConnected(context)
+                    }
+                }
+            }
+        }
+
+        private fun broadcastHeadsetConnected(context: Context) {
+            val intent = Intent(Intent.ACTION_HEADSET_PLUG)
+            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY)
+            intent.putExtra("state", 0)  // Would be 1 if not connected
+            intent.putExtra("name", "mysms")
+            try {
+                context.sendOrderedBroadcast(intent, null)
+            } catch (ignored: Exception) {
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+        private fun throughMediaController(context: Context) {
+            val mediaSessionManager =
+                context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+            try {
+                val controllers: List<MediaController> = mediaSessionManager.getActiveSessions(
+                    ComponentName(
+                        context,
+                        NotificationListenerService::class.java
+                    )
+                )
+                for (controller in controllers) {
+                    if ("com.android.server.telecom" == controller.packageName) {
+                        controller.dispatchMediaButtonEvent(
+                            KeyEvent(
+                                KeyEvent.ACTION_UP,
+                                KeyEvent.KEYCODE_HEADSETHOOK
+                            )
+                        )
+                        break
+                    }
+                }
+            } catch (exception: Exception) {
+                throughAudioManager(context)
+            }
+        }
+
+        private fun throughPhoneHeadsetHook(context: Context) {
+            val buttonDown = Intent(Intent.ACTION_MEDIA_BUTTON)
+            buttonDown.putExtra(
+                Intent.EXTRA_KEY_EVENT,
+                KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK)
+            )
+            context.sendOrderedBroadcast(buttonDown, "android.permission.CALL_PRIVILEGED")
+            val buttonUp = Intent(Intent.ACTION_MEDIA_BUTTON)
+            buttonUp.putExtra(
+                Intent.EXTRA_KEY_EVENT,
+                KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK)
+            )
+            context.sendOrderedBroadcast(buttonUp, "android.permission.CALL_PRIVILEGED")
+        }
+
+        internal fun call(context: Context, number: String) {
+            val applicationContext = context.applicationContext
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.CALL_PHONE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Guardian.say(applicationContext, Log.ERROR, TAG, "ERROR: Not permitted to call")
+            } else {
+                val call = Intent(Intent.ACTION_CALL, Uri.parse("tel:$number"))
+                call.addFlags(FLAG_ACTIVITY_NEW_TASK)
+                context.applicationContext.startActivity(call)
+                speakerphone(applicationContext)
+            }
+        }
+
+        private val TAG = Telephony::class.java.simpleName
     }
 }

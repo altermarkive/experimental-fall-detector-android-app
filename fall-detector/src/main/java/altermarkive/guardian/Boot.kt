@@ -1,14 +1,13 @@
-package altermarkive.guardian;
+package altermarkive.guardian
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 
-public class Boot extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
-            Guardian.initiate(context);
+class Boot : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
+            Guardian.initiate(context)
         }
     }
 }

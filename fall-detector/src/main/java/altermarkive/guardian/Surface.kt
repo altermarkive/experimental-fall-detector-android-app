@@ -1,298 +1,295 @@
-package altermarkive.guardian;
+package altermarkive.guardian
 
-import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PaintFlagsDrawFilter;
-import android.graphics.Rect;
-import android.util.AttributeSet;
-import android.util.SparseArray;
-import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.View.OnTouchListener;
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PaintFlagsDrawFilter
+import android.graphics.Rect
+import android.util.AttributeSet
+import android.util.SparseArray
+import android.view.MotionEvent
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.View
+import android.view.View.OnTouchListener
+import kotlin.math.floor
+import kotlin.math.log10
+import kotlin.math.pow
 
-public class Surface extends SurfaceView implements Callback, Runnable, OnTouchListener {
-    private static class Signal {
-        public final String label;
-        public final int color;
-        public final int offset;
+class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(context, attributes),
+    SurfaceHolder.Callback, Runnable, OnTouchListener {
+    private class Signal(val label: String, val color: Int, val buffer: Int)
 
-        public Signal(String label, int color, int offset) {
-            this.label = label;
-            this.color = color;
-            this.offset = offset;
-        }
+    private class Threshold(val label: String, val color: Int, val value: Double)
+
+    private class Chart(
+        val label: String, val min: Float, val max: Float, val signals: Array<Signal>,
+        val thresholds: Array<Threshold>
+    )
+
+    private val surfaceHolder = holder
+    private var running = false
+    private var thread: Thread? = null
+    private var selected = 0
+    private val bounds = Rect()
+
+    override fun surfaceCreated(holder: SurfaceHolder) {
+        val thread = Thread(this)
+        thread.start()
+        this.thread = thread
     }
 
-    private static class Threshold {
-        public final String label;
-        public final int color;
-        public final double value;
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
 
-        public Threshold(String label, int color, double value) {
-            this.label = label;
-            this.color = color;
-            this.value = value;
-        }
-    }
-
-    private static class Chart {
-        public final String label;
-        public final float min;
-        public final float max;
-        public final Signal[] signals;
-        public final Threshold[] thresholds;
-
-        public Chart(String label, float min, float max, Signal[] signals,
-                     Threshold[] thresholds) {
-            this.label = label;
-            this.min = min;
-            this.max = max;
-            this.signals = signals;
-            this.thresholds = thresholds;
-        }
-    }
-
-    private final static Chart[] CHARTS = {
-            new Chart("Accelerometer", -2.0F, 2.0F,
-                    new Signal[]{
-                            new Signal("X", 0xFFFF0000, Detector.OFFSET_X),
-                            new Signal("Y", 0xFF00FF00, Detector.OFFSET_Y),
-                            new Signal("Z", 0xFF0000FF, Detector.OFFSET_Z)},
-                    new Threshold[]{
-                            new Threshold("+1G", 0xFFFF7F00, +1),
-                            new Threshold("-1G", 0xFFFF7F00, -1)}),
-            new Chart("X Axis", -2.0F, 2.0F,
-                    new Signal[]{
-                            new Signal("X", 0xFFFF0000, Detector.OFFSET_X),
-                            new Signal("X LPF", 0xFF00FF00, Detector.OFFSET_X_LPF),
-                            new Signal("X HPF", 0xFF0000FF, Detector.OFFSET_X_HPF)},
-                    new Threshold[]{
-                            new Threshold("+1G", 0xFFFF7F00, +1),
-                            new Threshold("-1G", 0xFFFF7F00, -1)}),
-            new Chart("Y Axis", -2.0F, 2.0F,
-                    new Signal[]{
-                            new Signal("Y", 0xFFFF0000, Detector.OFFSET_Y),
-                            new Signal("Y LPF", 0xFF00FF00, Detector.OFFSET_Y_LPF),
-                            new Signal("Y HPF", 0xFF0000FF, Detector.OFFSET_Y_HPF)},
-                    new Threshold[]{
-                            new Threshold("+1G", 0xFFFF7F00, +1),
-                            new Threshold("-1G", 0xFFFF7F00, -1)}),
-            new Chart("Z Axis", -2.0F, 2.0F,
-                    new Signal[]{
-                            new Signal("Z", 0xFFFF0000, Detector.OFFSET_Z),
-                            new Signal("Z LPF", 0xFF00FF00, Detector.OFFSET_Z_LPF),
-                            new Signal("Z HPF", 0xFF0000FF, Detector.OFFSET_Z_HPF)},
-                    new Threshold[]{
-                            new Threshold("+1G", 0xFFFF7F00, +1),
-                            new Threshold("-1G", 0xFFFF7F00, -1)}),
-            new Chart("Deltas", -2.0F, 2.0F,
-                    new Signal[]{
-                            new Signal("X D", 0xFFFF0000, Detector.OFFSET_X_D),
-                            new Signal("Y D", 0xFF00FF00, Detector.OFFSET_Y_D),
-                            new Signal("Z D", 0xFF0000FF, Detector.OFFSET_Z_D)},
-                    new Threshold[]{
-                            new Threshold("+1G", 0xFFFF7F00, +1),
-                            new Threshold("-1G", 0xFFFF7F00, -1)}),
-            new Chart("Thresholds", -1.0F, 6.0F,
-                    new Signal[]{
-                            new Signal("SV TOT", 0xFFFF0000, Detector.OFFSET_SV_TOT),
-                            new Signal("SV D", 0xFF00FF00, Detector.OFFSET_SV_D),
-                            new Signal("SV MAXMIN", 0xFF0000FF, Detector.OFFSET_SV_MAXMIN),
-                            new Signal("Z 2", 0xFF000000, Detector.OFFSET_Z_2)},
-                    new Threshold[]{
-                            new Threshold("Fall: SV TOT", 0xFFFF0000, Detector.FALLING_WAIST_SV_TOT),
-                            new Threshold("Impact: SV TOT, SV MAXMIN", 0xFFFF0000, Detector.IMPACT_WAIST_SV_TOT),
-                            new Threshold("Impact: SV D", 0xFF00FF00, Detector.IMPACT_WAIST_SV_D),
-                            new Threshold("Impact: SV TOT, SV MAXMIN", 0xFF0000FF, Detector.IMPACT_WAIST_SV_MAXMIN),
-                            new Threshold("Impact: Z 2", 0xFF000000, Detector.IMPACT_WAIST_Z_2)}),
-            new Chart("Events", -0.5F, 1.5F,
-                    new Signal[]{
-                            new Signal("Falling", 0xFF00FF00, Detector.OFFSET_FALLING),
-                            new Signal("Impact", 0xFF0000FF, Detector.OFFSET_IMPACT),
-                            new Signal("Lying", 0xFFFF0000, Detector.OFFSET_LYING)},
-                    new Threshold[]{})
-    };
-
-    private final static PaintFlagsDrawFilter ANTIALIASING = new PaintFlagsDrawFilter(1, Paint.ANTI_ALIAS_FLAG);
-    private final SurfaceHolder holder = getHolder();
-    private boolean running = false;
-    private Thread thread = null;
-    private int selected = 0;
-    private Rect bounds = new Rect();
-
-    public Surface(Context context, AttributeSet attributes) {
-        super(context, attributes);
-        holder.addCallback(this);
-        setOnTouchListener(this);
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        running = true;
-        thread = new Thread(this);
-        thread.start();
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+    override fun surfaceDestroyed(holder: SurfaceHolder) {
+        val thread = this.thread
         if (null != thread) {
-            running = false;
+            running = false
             try {
-                thread.join();
-            } catch (InterruptedException ignored) {
+                thread.join()
+            } catch (ignored: InterruptedException) {
             }
-            thread = null;
+            this.thread = null
         }
     }
 
-    @Override
-    public boolean onTouch(View view, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            int replacing = selected + CHARTS.length;
-            if (event.getX() < getWidth() / 2) {
-                replacing--;
+    override fun onTouch(view: View, event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            var replacing = selected + CHARTS.size
+            if (event.x < width / 2) {
+                replacing--
             } else {
-                replacing++;
+                replacing++
             }
-            selected = replacing % CHARTS.length;
+            selected = replacing % CHARTS.size
         }
-        return (true);
+        return true
     }
 
-    @Override
-    public void run() {
+    override fun run() {
+        running = true
         while (running) {
-            Detector.acquire();
-            double[] buffer = Detector.buffer();
-            if (buffer != null) {
-                Canvas gfx = holder.lockCanvas();
+            synchronized(Detector.singleton) {
+                val gfx = surfaceHolder.lockCanvas()
                 if (gfx != null) {
-                    int position = Detector.position();
+                    val position = Detector.singleton.position
                     try {
-                        synchronized (holder) {
-                            chart(gfx, buffer, position);
-                        }
+                        synchronized(surfaceHolder) { chart(gfx, position) }
                     } finally {
-                        holder.unlockCanvasAndPost(gfx);
+                        surfaceHolder.unlockCanvasAndPost(gfx)
                     }
                 }
             }
-            Detector.release();
             try {
-                Thread.sleep(40);
-            } catch (InterruptedException ignored) {
+                Thread.sleep(1000)
+            } catch (ignored: InterruptedException) {
             }
         }
     }
 
-    public void chart(Canvas gfx, double[] block, int position) {
-        int width = getWidth();
-        int height = getHeight();
-        gfx.drawColor(0xFFFFFFFF);
-        gfx.setDrawFilter(ANTIALIASING);
-        Chart chart = CHARTS[selected];
-        grid(gfx, chart, width, height);
-        legend(gfx, chart);
-        thresholds(gfx, chart, width, height);
-        signals(gfx, chart, block, position, width, height);
+    private fun chart(gfx: Canvas, position: Int) {
+        val width = width
+        val height = height
+        gfx.drawColor(-0x1)
+        gfx.drawFilter = ANTIALIASING
+        val chart = CHARTS[selected]
+        grid(gfx, chart, width, height)
+        legend(gfx, chart)
+        thresholds(gfx, chart, width, height)
+        signals(gfx, chart, position, width, height)
     }
 
-    private void grid(Canvas gfx, Chart chart, int width, int height) {
-        Paint paint = paint(0xFFDDDDDD);
+    private fun grid(gfx: Canvas, chart: Chart, width: Int, height: Int) {
+        val paint = paint(-0x222223)
         // Vertical
-        for (int i = 0; i <= Detector.N; i += 1000 / Detector.INTERVAL_MS) {
-            double x = x(Detector.N - 1 - i, width);
-            gfx.drawLine((float) x, 0, (float) x, (float) height, paint);
+        var i = 0
+        while (i <= Detector.N) {
+            val x = x((Detector.N - 1 - i).toDouble(), width.toDouble())
+            gfx.drawLine(x.toFloat(), 0f, x.toFloat(), height.toFloat(), paint)
+            i += 1000 / Detector.INTERVAL_MS
         }
         // Horizontal
-        double delta = chart.max - chart.min;
-        double step = Math.pow(10, Math.floor(Math.log10(delta)));
+        val delta = (chart.max - chart.min).toDouble()
+        var step = 10.0.pow(floor(log10(delta)))
         while (delta / step < 2) {
-            step /= 10;
+            step /= 10.0
         }
-        double infimum = chart.min - chart.min % step;
-        double supremum = chart.max - chart.max % step;
-        for (double value = infimum; value <= supremum; value += step) {
-            double y = y(value, height, chart.min, chart.max);
-            gfx.drawLine(0, (float) y, width, (float) y, paint);
-        }
-    }
-
-    private void legend(Canvas gfx, Chart chart) {
-        Paint paint = paint(0xFF000000);
-        paint.getTextBounds("|", 0, 1, bounds);
-        int delta = bounds.height();
-        float y = delta;
-        gfx.drawText(chart.label, 10, y, paint);
-        y += delta;
-        for (Signal signal : chart.signals) {
-            paint = paint(signal.color);
-            gfx.drawText(signal.label, 10, y, paint);
-            y += delta;
+        val lower = chart.min - chart.min % step
+        val higher = chart.max - chart.max % step
+        var value = lower
+        while (value <= higher) {
+            val y = y(value, height.toDouble(), chart.min.toDouble(), chart.max.toDouble())
+            gfx.drawLine(0f, y.toFloat(), width.toFloat(), y.toFloat(), paint)
+            value += step
         }
     }
 
-    private void thresholds(Canvas gfx, Chart chart, int width, int height) {
-        for (Threshold threshold : chart.thresholds) {
-            Paint paint = paint(threshold.color);
-            double y = y(threshold.value, height, chart.min, chart.max);
-            gfx.drawText(threshold.label, 10, (float) y - 10, paint);
-            gfx.drawLine(0, (float) y, width, (float) y, paint);
+    private fun legend(gfx: Canvas, chart: Chart) {
+        var paint = paint(-0x1000000)
+        paint.getTextBounds("|", 0, 1, bounds)
+        val delta = bounds.height()
+        var y = delta.toFloat()
+        gfx.drawText(chart.label, 10f, y, paint)
+        y += delta.toFloat()
+        for (signal in chart.signals) {
+            paint = paint(signal.color)
+            gfx.drawText(signal.label, 10f, y, paint)
+            y += delta.toFloat()
         }
     }
 
-    private void signals(Canvas gfx, Chart chart, double[] block, int position, int width, int height) {
-        for (Signal signal : chart.signals) {
-            Paint paint = paint(signal.color);
-            int offset = signal.offset;
-            double lastX = Double.NaN;
-            double lastY = Double.NaN;
-            for (int sample = 0; sample < Detector.N; sample++) {
-                double x = x(sample, width);
-                double value = block[offset + ((position + 1 + sample) % Detector.N)];
-                if (valid(value)) {
-                    double y = y(value, height, chart.min, chart.max);
+    private fun thresholds(gfx: Canvas, chart: Chart, width: Int, height: Int) {
+        for (threshold in chart.thresholds) {
+            val paint = paint(threshold.color)
+            val y =
+                y(threshold.value, height.toDouble(), chart.min.toDouble(), chart.max.toDouble())
+            gfx.drawText(threshold.label, 10f, y.toFloat() - 10, paint)
+            gfx.drawLine(0f, y.toFloat(), width.toFloat(), y.toFloat(), paint)
+        }
+    }
+
+    private fun signals(
+        gfx: Canvas,
+        chart: Chart,
+        position: Int,
+        width: Int,
+        height: Int
+    ) {
+        for (signal in chart.signals) {
+            val paint = paint(signal.color)
+            val buffer = Detector.singleton.buffer(signal.buffer) ?: continue
+            var lastX = Double.NaN
+            var lastY = Double.NaN
+            for (sample in 0 until Detector.N) {
+                val x = x(sample.toDouble(), width.toDouble())
+                val value = buffer[(position + 1 + sample) % Detector.N]
+                lastY = if (valid(value)) {
+                    val y = y(value, height.toDouble(), chart.min.toDouble(), chart.max.toDouble())
                     if (valid(lastY)) {
-                        gfx.drawLine((float) lastX, (float) lastY, (float) x, (float) y, paint);
+                        gfx.drawLine(
+                            lastX.toFloat(),
+                            lastY.toFloat(),
+                            x.toFloat(),
+                            y.toFloat(),
+                            paint
+                        )
                     }
-                    lastY = y;
+                    y
                 } else {
-                    lastY = Double.NaN;
+                    Double.NaN
                 }
-                lastX = x;
+                lastX = x
             }
         }
     }
 
-    private static boolean valid(double value) {
-        return (!(Double.isInfinite(value) || Double.isNaN(value)));
-    }
+    companion object {
+        private val CHARTS = arrayOf(
+            Chart(
+                "Accelerometer", -2.0f, 2.0f, arrayOf(
+                    Signal("X", -0x10000, Detector.BUFFER_X),
+                    Signal("Y", -0xff0100, Detector.BUFFER_Y),
+                    Signal("Z", -0xffff01, Detector.BUFFER_Z)
+                ), arrayOf(
+                    Threshold("+1G", -0x8100, +1.0),
+                    Threshold("-1G", -0x8100, -1.0)
+                )
+            ),
+            Chart(
+                "X Axis", -2.0f, 2.0f, arrayOf(
+                    Signal("X", -0x10000, Detector.BUFFER_X),
+                    Signal("X LPF", -0xff0100, Detector.BUFFER_X_LPF),
+                    Signal("X HPF", -0xffff01, Detector.BUFFER_X_HPF)
+                ), arrayOf(
+                    Threshold("+1G", -0x8100, +1.0),
+                    Threshold("-1G", -0x8100, -1.0)
+                )
+            ),
+            Chart(
+                "Y Axis", -2.0f, 2.0f, arrayOf(
+                    Signal("Y", -0x10000, Detector.BUFFER_Y),
+                    Signal("Y LPF", -0xff0100, Detector.BUFFER_Y_LPF),
+                    Signal("Y HPF", -0xffff01, Detector.BUFFER_Y_HPF)
+                ), arrayOf(
+                    Threshold("+1G", -0x8100, +1.0),
+                    Threshold("-1G", -0x8100, -1.0)
+                )
+            ),
+            Chart(
+                "Z Axis", -2.0f, 2.0f, arrayOf(
+                    Signal("Z", -0x10000, Detector.BUFFER_Z),
+                    Signal("Z LPF", -0xff0100, Detector.BUFFER_Z_LPF),
+                    Signal("Z HPF", -0xffff01, Detector.BUFFER_Z_HPF)
+                ), arrayOf(
+                    Threshold("+1G", -0x8100, +1.0),
+                    Threshold("-1G", -0x8100, -1.0)
+                )
+            ),
+            Chart(
+                "Deltas", -2.0f, 2.0f, arrayOf(
+                    Signal("X D", -0x10000, Detector.BUFFER_X_MAX_MIN),
+                    Signal("Y D", -0xff0100, Detector.BUFFER_Y_MAX_MIN),
+                    Signal("Z D", -0xffff01, Detector.BUFFER_Z_MAX_MIN)
+                ), arrayOf(
+                    Threshold("+1G", -0x8100, +1.0),
+                    Threshold("-1G", -0x8100, -1.0)
+                )
+            ),
+            Chart(
+                "Thresholds", -1.0f, 6.0f, arrayOf(
+                    Signal("SV TOT", -0x10000, Detector.BUFFER_SV_TOT),
+                    Signal("SV D", -0xff0100, Detector.BUFFER_SV_D),
+                    Signal("SV MAX MIN", -0xffff01, Detector.BUFFER_SV_MAX_MIN),
+                    Signal("Z 2", -0x1000000, Detector.BUFFER_Z_2)
+                ), arrayOf(
+                    Threshold("Fall: SV TOT", -0x10000, Detector.FALLING_WAIST_SV_TOT),
+                    Threshold("Impact: SV TOT, SV MAX MIN", -0x10000, Detector.IMPACT_WAIST_SV_TOT),
+                    Threshold("Impact: SV D", -0xff0100, Detector.IMPACT_WAIST_SV_D),
+                    Threshold(
+                        "Impact: SV TOT, SV MAX MIN",
+                        -0xffff01,
+                        Detector.IMPACT_WAIST_SV_MAX_MIN
+                    ),
+                    Threshold("Impact: Z 2", -0x1000000, Detector.IMPACT_WAIST_Z_2)
+                )
+            ),
+            Chart(
+                "Events", -0.5f, 1.5f, arrayOf(
+                    Signal("Falling", -0xff0100, Detector.BUFFER_FALLING),
+                    Signal("Impact", -0xffff01, Detector.BUFFER_IMPACT),
+                    Signal("Lying", -0x10000, Detector.BUFFER_LYING)
+                ), arrayOf()
+            )
+        )
+        private val ANTIALIASING = PaintFlagsDrawFilter(1, Paint.ANTI_ALIAS_FLAG)
 
-    private static double x(double x, double width) {
-        return (x * (width - 1) / (double) (Detector.N - 1));
-    }
-
-    private static double y(double y, double height, double min, double max) {
-        return ((height - 1) * (1 - (y - min) / (max - min)));
-    }
-
-    private static SparseArray<Paint> paints = new SparseArray<Paint>();
-
-    private static Paint paint(int color) {
-        Paint paint = paints.get(color);
-        if (null == paint) {
-            paint = new Paint();
-            paint.setColor(color);
-            paints.put(color, paint);
+        private fun valid(value: Double): Boolean {
+            return !(java.lang.Double.isInfinite(value) || java.lang.Double.isNaN(value))
         }
-        return (paint);
+
+        private fun x(x: Double, width: Double): Double {
+            return x * (width - 1) / (Detector.N - 1).toDouble()
+        }
+
+        private fun y(y: Double, height: Double, min: Double, max: Double): Double {
+            return (height - 1) * (1 - (y - min) / (max - min))
+        }
+
+        private val paints = SparseArray<Paint>()
+
+        private fun paint(color: Int): Paint {
+            var paint = paints[color]
+            if (null == paint) {
+                paint = Paint()
+                paint.color = color
+                paints.put(color, paint)
+            }
+            return paint
+        }
+    }
+
+    init {
+        surfaceHolder.addCallback(this)
+        setOnTouchListener(this)
     }
 }
