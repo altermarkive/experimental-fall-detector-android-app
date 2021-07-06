@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:weightSum="1">
 
-    <WebView xmlns:android="http://schemas.android.com/apk/res/android"
+    <WebView
         android:id="@+id/eula"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
