@@ -1,62 +1,36 @@
-apply plugin: 'com.android.model.application'
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+}
 
-model {
-    /* Target is 20 to avoid error "UnsatisfiedLinkError: Cannot load library: reloc_library" */
-    /* Minimum is 9 because there was no sensors.h before that */
-    android {
-        compileSdkVersion = 20
-        buildToolsVersion ="22.0.1"
+android {
+    compileSdkVersion 30
 
-        defaultConfig.with {
-            applicationId = "altermarkive.guardian"
-            minSdkVersion.apiLevel      = 9
-            targetSdkVersion.apiLevel   = 9
-        }
+    defaultConfig {
+        applicationId "altermarkive.guardian"
+        minSdkVersion 16
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
     }
-    /*
-     * native build settings
-     */
-    android.ndk {
-        moduleName = "detector"
-        ldLibs += ["log", "android"]
-        /*
-         * Other ndk flags configurable here are
-         * cppFlags += "-fno-rtti"
-         * cppFlags += "-fno-exceptions"
-         * stl       = "system"
-         */
-    }
-    android.buildTypes {
+
+    buildTypes {
         release {
-            minifyEnabled = false
-            proguardFiles  += file('proguard-rules.txt')
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
-    android.productFlavors {
-        // for detailed abiFilter descriptions, refer to "Supported ABIs" @
-        // https://developer.android.com/ndk/guides/abis.html#sa
-        create("arm") {
-            ndk.abiFilters += "armeabi"
-        }
-        create("arm7") {
-            ndk.abiFilters += "armeabi-v7a"
-        }
-        create("arm8") {
-            ndk.abiFilters += "arm64-v8a"
-        }
-        create("x86") {
-            ndk.abiFilters += "x86"
-        }
-        create("x86-64") {
-            ndk.abiFilters += "x86_64"
-        }
-        create("mips") {
-            ndk.abiFilters += "mips"
-        }
-        create("mips-64") {
-            ndk.abiFilters += "mips64"
-        }
-        // To include all cpu architectures, leaves abiFilters empty
-        create("all")
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
 }
