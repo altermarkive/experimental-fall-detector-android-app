@@ -1,7 +1,6 @@
 package altermarkive.guardian
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,7 +16,6 @@ import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import java.util.logging.Level
 
 class Contact : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,7 +65,7 @@ class Contact : AppCompatActivity(), View.OnClickListener {
     private val contactPicker = registerForActivityResult(
         StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == AppCompatActivity.RESULT_OK) {
             val data: Intent? = result.data
             if (data == null) {
                 Guardian.say(this, Log.ERROR, TAG, "ERROR: No data after contact selection")
