@@ -65,7 +65,7 @@ class Contact : AppCompatActivity(), View.OnClickListener {
     private val contactPicker = registerForActivityResult(
         StartActivityForResult()
     ) { result ->
-        if (result.resultCode == AppCompatActivity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val data: Intent? = result.data
             if (data == null) {
                 Guardian.say(this, Log.ERROR, TAG, "ERROR: No data after contact selection")
