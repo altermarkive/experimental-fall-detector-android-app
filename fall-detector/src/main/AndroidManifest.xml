@@ -85,7 +85,7 @@
         <service
             android:name="altermarkive.guardian.Guardian"
             android:exported="false"
-            android:label="Guardian Service">
+            android:label="Monitoring Service">
             <intent-filter>
                 <action android:name="guardian.Guardian" />
             </intent-filter>

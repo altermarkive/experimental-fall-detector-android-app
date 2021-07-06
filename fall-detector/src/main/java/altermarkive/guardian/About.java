@@ -11,7 +11,7 @@ import android.widget.Button;
 
 public class About extends Activity implements View.OnClickListener {
     private void eula(Context context) {
-        // Run the guardian
+        // Run the service
         Guardian.initiate(this);
         // Load the EULA
         final Dialog dialog = new Dialog(context);

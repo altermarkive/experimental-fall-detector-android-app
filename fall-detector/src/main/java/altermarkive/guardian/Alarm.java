@@ -32,13 +32,13 @@ public class Alarm {
     public static void call(Context context) {
         String contact = Contact.get(context);
         if (contact != null && !"".equals(contact)) {
-            Toast.makeText(context, "Calling guardian's phone number for help", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Alerting the emergency phone number", Toast.LENGTH_SHORT).show();
             Intent call = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact));
             call.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(call);
             Telephony.handsfree(context);
         } else {
-            Toast.makeText(context, "Please enter guardian's phone number in the settings", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "ERROR: Emergency phone number not set", Toast.LENGTH_SHORT).show();
             siren(context);
         }
     }
