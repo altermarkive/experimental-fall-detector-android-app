@@ -15,7 +15,9 @@ In short: When a fall is detected the app calls the configured phone number.
 * For optimal performance (to reduce the number of false alarms and the number of undetected falls) carry the device close to your waist (a trouser pocket, a belt clip, etc.).
 * Keep your device charged at all times.
 
-See the screenshots of [the main screen](doc/screenshot.1.png) and [the configuration screen](doc/screenshot.2.png). Install the app by clicking [here](fall-detector/build/outputs/apk/fall-detector-all-debug.apk)
+See the screenshots of [the main screen](doc/screenshot.1.png) and [the configuration screen](doc/screenshot.2.png).
+Install the app by side-loading the APK file available [here](releases)
+(you can find more info about the process [here](https://www.howtogeek.com/313433/how-to-sideload-apps-on-android/))
 
 ## CREDITS
 
