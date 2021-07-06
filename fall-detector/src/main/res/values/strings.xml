@@ -12,4 +12,5 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="help">Help</string>
+    <string name="grant">Grant Permissions</string>
 </resources>
