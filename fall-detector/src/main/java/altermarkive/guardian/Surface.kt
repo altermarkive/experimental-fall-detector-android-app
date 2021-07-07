@@ -126,13 +126,15 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
 
     private fun legend(gfx: Canvas, chart: Chart) {
         var paint = paint(-0x1000000)
+        paint.textSize = height / 40f
         paint.getTextBounds("|", 0, 1, bounds)
-        val delta = bounds.height()
+        val delta = bounds.height() * 1.4
         var y = delta.toFloat()
         gfx.drawText(chart.label, 10f, y, paint)
         y += delta.toFloat()
         for (signal in chart.signals) {
             paint = paint(signal.color)
+            paint.textSize = height / 40f
             gfx.drawText(signal.label, 10f, y, paint)
             y += delta.toFloat()
         }
@@ -141,6 +143,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
     private fun thresholds(gfx: Canvas, chart: Chart, width: Int, height: Int) {
         for (threshold in chart.thresholds) {
             val paint = paint(threshold.color)
+            paint.textSize = height / 40f
             val y =
                 y(threshold.value, height.toDouble(), chart.min.toDouble(), chart.max.toDouble())
             gfx.drawText(threshold.label, 10f, y.toFloat() - 10, paint)
