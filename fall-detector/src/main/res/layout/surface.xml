@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:paddingBottom="?attr/actionBarSize"
+    tools:context="altermarkive.guardian.Signals">
 
     <altermarkive.guardian.Surface
         android:id="@+id/surface"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
+
 </LinearLayout>

@@ -1,11 +1,10 @@
 package altermarkive.guardian
 
 import android.os.Bundle
-import android.preference.PreferenceActivity
+import androidx.preference.PreferenceFragmentCompat
 
-class Settings : PreferenceActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        addPreferencesFromResource(R.xml.preferences)
+class Settings : PreferenceFragmentCompat() {
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        setPreferencesFromResource(R.xml.preferences, rootKey)
     }
 }

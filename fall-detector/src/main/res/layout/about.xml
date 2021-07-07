@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="?attr/actionBarSize"
+    tools:context="altermarkive.guardian.About">
 
     <TextView
         android:id="@+id/status"
@@ -13,37 +16,16 @@
         android:padding="20dp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/help"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:text="@string/help" />
-
-        <Button
-            android:id="@+id/settings"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:text="@string/settings" />
-    </LinearLayout>
-
     <Button
-        android:id="@+id/signals"
+        android:id="@+id/help"
         style="?android:attr/buttonBarButtonStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/signals" />
+        android:text="@string/help" />
 
     <WebView
-        android:id="@+id/about"
+        android:id="@+id/information"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
 </LinearLayout>

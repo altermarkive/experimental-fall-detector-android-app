@@ -1,76 +1,41 @@
 package altermarkive.guardian
 
-import android.Manifest
-import android.app.Dialog
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Color.GREEN
-import android.graphics.Color.RED
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.fragment.app.Fragment
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.os.Build
+import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 
-class About : AppCompatActivity(), View.OnClickListener {
-    private fun eula(context: Context) {
-        // Run the guardian
-        Guardian.initiate(this)
-        // Load the EULA
-        val dialog = Dialog(context)
-        dialog.setContentView(R.layout.eula)
-        dialog.setTitle("EULA")
-        val web = dialog.findViewById<View>(R.id.eula) as WebView
-        web.loadUrl("file:///android_asset/eula.html")
-        val accept = dialog.findViewById<View>(R.id.accept) as Button
-        accept.setOnClickListener { dialog.dismiss() }
-        val layout = WindowManager.LayoutParams()
-        layout.copyFrom(dialog.window!!.attributes)
-        layout.width = WindowManager.LayoutParams.MATCH_PARENT
-        layout.height = WindowManager.LayoutParams.MATCH_PARENT
-        dialog.window!!.attributes = layout
-        dialog.show()
-    }
+class About : Fragment(), View.OnClickListener {
+    private var binding: View? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-//        Detector.instance(this)
-        setContentView(R.layout.about)
-        val web = findViewById<View>(R.id.about) as WebView
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val binding = inflater.inflate(R.layout.about, container, false)
+        this.binding = binding
+        val web = binding.findViewById<View>(R.id.information) as WebView
         web.loadUrl("file:///android_asset/about.html")
-        val help = findViewById<View>(R.id.help) as Button
+        val help = binding.findViewById<View>(R.id.help) as Button
         help.setOnClickListener(this)
-        val settings = findViewById<View>(R.id.settings) as Button
-        settings.setOnClickListener(this)
-        val signals = findViewById<View>(R.id.signals) as Button
-        signals.setOnClickListener(this)
-        eula(this)
+        return binding
     }
 
     override fun onClick(view: View) {
-        val intent: Intent
-        when (view.id) {
-            R.id.settings -> {
-                intent = Intent(this, Settings::class.java)
-                startActivity(intent)
-                return
-            }
-            R.id.help -> {
-                Alarm.alert(this)
-                return
-            }
-            R.id.signals -> {
-                intent = Intent(this, Signals::class.java)
-                startActivity(intent)
-                return
-            }
+        if (R.id.help == view.id) {
+            Alarm.alert(requireActivity().applicationContext)
         }
     }
 
@@ -84,24 +49,24 @@ class About : AppCompatActivity(), View.OnClickListener {
         val statusColor: Int
         if (permitted(request)) {
             statusText = "Permissions: Granted"
-            statusColor = GREEN
+            statusColor = Color.GREEN
         } else {
             statusText = "Permissions: Missing"
-            statusColor = RED
+            statusColor = Color.RED
         }
-        val status = findViewById<View>(R.id.status) as TextView
+        val binding = this.binding ?: return
+        val status = binding.findViewById<View>(R.id.status) as TextView
         status.text = statusText
         status.setTextColor(statusColor)
     }
 
-    @Suppress("SameParameterValue")
     private fun permitted(request: Boolean): Boolean {
         val list: MutableList<String> = mutableListOf()
         var granted = true
         for (item: VersionedPermission in PERMISSIONS) {
             list.add(item.permission)
             if (Build.VERSION.SDK_INT >= item.version && ContextCompat.checkSelfPermission(
-                    this,
+                    requireActivity().applicationContext,
                     item.permission
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
@@ -110,46 +75,36 @@ class About : AppCompatActivity(), View.OnClickListener {
         }
         if (!granted) {
             if (request) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    list.toTypedArray(),
-                    REQUEST_CODE_PERMISSION_EACH
-                )
+                requestPermissions.launch(list.toTypedArray())
             }
         }
         return granted
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_CODE_PERMISSION_EACH -> {
-                if (grantResults.isNotEmpty()) {
-                    for (result: Int in grantResults) {
-                        if (PackageManager.PERMISSION_GRANTED != result) {
-                            Guardian.say(
-                                this,
-                                Log.ERROR,
-                                TAG,
-                                "ERROR: Permissions were not granted"
-                            )
-                        }
-                    }
-                }
-                refreshPermissions(false)
-            }
+    private val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        var granted = true
+        for (permission in permissions) {
+            granted = granted && permission.value
         }
+        if (!granted) {
+            Guardian.say(
+                requireActivity().applicationContext,
+                Log.ERROR,
+                TAG,
+                "ERROR: Permissions were not granted"
+            )
+        }
+        refreshPermissions(false)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 
     class VersionedPermission(val permission: String, val version: Int)
 
     companion object {
-        private const val REQUEST_CODE_PERMISSION_EACH: Int = 0x0000C0DE
-
         private val PERMISSIONS: Array<VersionedPermission> = arrayOf(
             VersionedPermission(
                 Manifest.permission.ACCESS_COARSE_LOCATION,

@@ -42,8 +42,8 @@ class Guardian : Service() {
                 // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
                 ""
             }
-        val about = Intent(this, About::class.java)
-        val pending = PendingIntent.getActivity(this, 0, about, 0)
+        val main = Intent(this, Main::class.java)
+        val pending = PendingIntent.getActivity(this, 0, main, 0)
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setContentTitle(app)

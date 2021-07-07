@@ -39,7 +39,7 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.FallDetector">
         <activity
-            android:name="altermarkive.guardian.About"
+            android:name="altermarkive.guardian.Main"
             android:label="@string/app"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity">
