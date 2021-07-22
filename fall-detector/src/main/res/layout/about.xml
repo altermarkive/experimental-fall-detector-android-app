@@ -17,11 +17,11 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
-        android:id="@+id/help"
+        android:id="@+id/emergency"
         style="?android:attr/buttonBarButtonStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/help" />
+        android:text="@string/emergency" />
 
     <WebView
         android:id="@+id/information"

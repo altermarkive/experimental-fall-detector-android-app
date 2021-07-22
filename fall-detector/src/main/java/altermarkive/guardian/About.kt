@@ -28,13 +28,13 @@ class About : Fragment(), View.OnClickListener {
         this.binding = binding
         val web = binding.findViewById<View>(R.id.information) as WebView
         web.loadUrl("file:///android_asset/about.html")
-        val help = binding.findViewById<View>(R.id.help) as Button
-        help.setOnClickListener(this)
+        val emergency = binding.findViewById<View>(R.id.emergency) as Button
+        emergency.setOnClickListener(this)
         return binding
     }
 
     override fun onClick(view: View) {
-        if (R.id.help == view.id) {
+        if (R.id.emergency == view.id) {
             Alarm.alert(requireActivity().applicationContext)
         }
     }
