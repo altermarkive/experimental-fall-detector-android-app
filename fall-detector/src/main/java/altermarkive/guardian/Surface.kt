@@ -285,6 +285,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
             if (null == paint) {
                 paint = Paint()
                 paint.color = color
+                paint.strokeWidth = 3f
                 paints.put(color, paint)
             }
             return paint
