@@ -12,6 +12,6 @@ class Signals : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.surface, container, false)
+        return inflater.inflate(R.layout.signals, container, false)
     }
 }

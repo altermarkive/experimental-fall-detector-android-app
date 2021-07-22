@@ -15,7 +15,7 @@
         android:id="@+id/signals"
         android:name="altermarkive.guardian.Signals"
         android:label="@string/signals"
-        tools:layout="@layout/surface" />
+        tools:layout="@layout/signals" />
 
     <fragment
         android:id="@+id/settings"
