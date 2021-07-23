@@ -17,4 +17,8 @@ jobs:
       - name: Building APK
         run: |
           /bin/bash ./gradlew assemble --stacktrace
-          ls -l fall-detector/build/outputs/apk/release/
+      - name: Upload APK
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: APK
+          path: fall-detector/build/outputs/apk/release/fall-detector-release-unsigned.apk
