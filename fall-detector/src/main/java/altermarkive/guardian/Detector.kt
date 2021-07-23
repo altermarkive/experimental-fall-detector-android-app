@@ -77,30 +77,31 @@ class Detector private constructor() : DetectorAbstract(),
         internal const val BUFFER_FALLING: Int = 16
         internal const val BUFFER_IMPACT: Int = 17
         internal const val BUFFER_LYING: Int = 18
+        internal const val BUFFER_COUNT: Int = 19
     }
 
     private var timeoutFalling: Int = -1
     private var timeoutImpact: Int = -1
-    var position: Int = 0
-    private val x: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val y: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val z: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val xLPF: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val yLPF: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val zLPF: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val xHPF: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val yHPF: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val zHPF: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val xMaxMin: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val yMaxMin: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val zMaxMin: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val svTOT: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val svD: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val svMaxMin: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val z2: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val falling: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val impact: DoubleArray = DoubleArray(N) { Double.NaN }
-    private val lying: DoubleArray = DoubleArray(N) { Double.NaN }
+    val buffers: Buffers = Buffers(BUFFER_COUNT, N, 0, Double.NaN)
+    private val x: DoubleArray = buffers.buffers[BUFFER_X]
+    private val y: DoubleArray = buffers.buffers[BUFFER_Y]
+    private val z: DoubleArray = buffers.buffers[BUFFER_Z]
+    private val xLPF: DoubleArray = buffers.buffers[BUFFER_X_LPF]
+    private val yLPF: DoubleArray = buffers.buffers[BUFFER_Y_LPF]
+    private val zLPF: DoubleArray = buffers.buffers[BUFFER_Z_LPF]
+    private val xHPF: DoubleArray = buffers.buffers[BUFFER_X_HPF]
+    private val yHPF: DoubleArray = buffers.buffers[BUFFER_Y_HPF]
+    private val zHPF: DoubleArray = buffers.buffers[BUFFER_Z_HPF]
+    private val xMaxMin: DoubleArray = buffers.buffers[BUFFER_X_MAX_MIN]
+    private val yMaxMin: DoubleArray = buffers.buffers[BUFFER_Y_MAX_MIN]
+    private val zMaxMin: DoubleArray = buffers.buffers[BUFFER_Z_MAX_MIN]
+    private val svTOT: DoubleArray = buffers.buffers[BUFFER_SV_TOT]
+    private val svD: DoubleArray = buffers.buffers[BUFFER_SV_D]
+    private val svMaxMin: DoubleArray = buffers.buffers[BUFFER_SV_MAX_MIN]
+    private val z2: DoubleArray = buffers.buffers[BUFFER_Z_2]
+    private val falling: DoubleArray = buffers.buffers[BUFFER_FALLING]
+    private val impact: DoubleArray = buffers.buffers[BUFFER_IMPACT]
+    private val lying: DoubleArray = buffers.buffers[BUFFER_LYING]
     private val xLpfXV = DoubleArray(FILTER_N_ZEROS + 1) { 0.0 }
     private val xLpfYV = DoubleArray(FILTER_N_POLES + 1) { 0.0 }
     private val yLpfXV = DoubleArray(FILTER_N_ZEROS + 1) { 0.0 }
@@ -118,31 +119,6 @@ class Detector private constructor() : DetectorAbstract(),
     private var anteZ: Double = Double.NaN
     private var anteTime: Long = 0
     private var regular: Long = 0
-
-    internal fun buffer(which: Int): DoubleArray? {
-        return when (which) {
-            BUFFER_X -> x
-            BUFFER_Y -> y
-            BUFFER_Z -> z
-            BUFFER_X_LPF -> xLPF
-            BUFFER_Y_LPF -> yLPF
-            BUFFER_Z_LPF -> zLPF
-            BUFFER_X_HPF -> xHPF
-            BUFFER_Y_HPF -> yHPF
-            BUFFER_Z_HPF -> zHPF
-            BUFFER_X_MAX_MIN -> xMaxMin
-            BUFFER_Y_MAX_MIN -> yMaxMin
-            BUFFER_Z_MAX_MIN -> zMaxMin
-            BUFFER_SV_TOT -> svTOT
-            BUFFER_SV_D -> svD
-            BUFFER_SV_MAX_MIN -> svMaxMin
-            BUFFER_Z_2 -> z2
-            BUFFER_FALLING -> falling
-            BUFFER_IMPACT -> impact
-            BUFFER_LYING -> lying
-            else -> null
-        }
-    }
 
     private fun linear(before: Long, ante: Double, after: Long, post: Double, now: Long): Double {
         return ante + (post - ante) * (now - before).toDouble() / (after - before).toDouble()
@@ -166,9 +142,9 @@ class Detector private constructor() : DetectorAbstract(),
     }
 
     private fun min(array: DoubleArray): Double {
-        var min: Double = at(array, position, N)
+        var min: Double = at(array, buffers.position, N)
         for (i: Int in 1 until SPAN_MAX_MIN) {
-            val value: Double = at(array, position - i, N)
+            val value: Double = at(array, buffers.position - i, N)
             if (!value.isNaN() && value < min) {
                 min = value
             }
@@ -177,9 +153,9 @@ class Detector private constructor() : DetectorAbstract(),
     }
 
     private fun max(array: DoubleArray): Double {
-        var max: Double = at(array, position, N)
+        var max: Double = at(array, buffers.position, N)
         for (i: Int in 1 until SPAN_MAX_MIN) {
-            val value: Double = at(array, position - i, N)
+            val value: Double = at(array, buffers.position - i, N)
             if (!value.isNaN() && max < value) {
                 max = value
             }
@@ -210,7 +186,7 @@ class Detector private constructor() : DetectorAbstract(),
     }
 
     private fun process() {
-        val at: Int = position
+        val at: Int = buffers.position
         timeoutFalling = expire(timeoutFalling)
         timeoutImpact = expire(timeoutImpact)
         xLPF[at] = lpf(x[at], xLpfXV, xLpfYV)
@@ -274,18 +250,18 @@ class Detector private constructor() : DetectorAbstract(),
             return
         }
         while (regular < postTime) {
-            val at: Int = position
+            val at: Int = buffers.position
             x[at] = linear(anteTime, anteX, postTime, postX, regular)
             y[at] = linear(anteTime, anteY, postTime, postY, regular)
             z[at] = linear(anteTime, anteZ, postTime, postZ, regular)
             process()
-            position = (position + 1) % N
+            buffers.position = (buffers.position + 1) % N
             regular += INTERVAL_MS
         }
     }
 
     private fun protect(postTime: Long, postX: Double, postY: Double, postZ: Double) {
-        synchronized(this) {
+        synchronized(buffers) {
             resample(postTime, postX, postY, postZ)
         }
     }

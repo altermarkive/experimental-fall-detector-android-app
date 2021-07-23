@@ -32,6 +32,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
     private var thread: Thread? = null
     private var selected = 0
     private val bounds = Rect()
+    private val buffers = Buffers(Detector.BUFFER_COUNT, Detector.N, 0, Double.NaN)
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         val thread = Thread(this)
@@ -69,15 +70,16 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
     override fun run() {
         running = true
         while (running) {
-            synchronized(Detector.singleton) {
-                val gfx = surfaceHolder.lockCanvas()
-                if (gfx != null) {
-                    val position = Detector.singleton.position
-                    try {
-                        synchronized(surfaceHolder) { chart(gfx, position) }
-                    } finally {
-                        surfaceHolder.unlockCanvasAndPost(gfx)
-                    }
+            synchronized(Detector.singleton.buffers) {
+                Detector.singleton.buffers.copyInto(buffers)
+            }
+            val gfx = surfaceHolder.lockCanvas()
+            if (gfx != null) {
+                val position = buffers.position
+                try {
+                    synchronized(surfaceHolder) { chart(gfx, position) }
+                } finally {
+                    surfaceHolder.unlockCanvasAndPost(gfx)
                 }
             }
             try {
@@ -160,7 +162,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
     ) {
         for (signal in chart.signals) {
             val paint = paint(signal.color)
-            val buffer = Detector.singleton.buffer(signal.buffer) ?: continue
+            val buffer = buffers.buffers[signal.buffer]
             var lastX = Double.NaN
             var lastY = Double.NaN
             for (sample in 0 until Detector.N) {
