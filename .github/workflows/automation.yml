@@ -23,13 +23,14 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           sed -i "s/0\.0\.0/${VERSION}/g" fall-detector/build.gradle
-          /bin/bash ./gradlew assemble --stacktrace
-          mv fall-detector/build/outputs/apk/release/fall-detector-release-unsigned.apk fall-detector/build/outputs/apk/release/fall-detector.${VERSION}.apk
+          /bin/bash ./gradlew assembleDebug --stacktrace
+          ls -l fall-detector/build/outputs/apk/debug/
+          mv fall-detector/build/outputs/apk/debug/fall-detector-debug-signed.apk fall-detector/build/outputs/apk/debug/fall-detector.${VERSION}.apk
       - name: Uploading Artifact
         uses: actions/upload-artifact@v2.2.4
         with:
           name: APK
-          path: fall-detector/build/outputs/apk/release/fall-detector.${{ steps.version.outputs.version }}.apk
+          path: fall-detector/build/outputs/apk/debug/fall-detector.${{ steps.version.outputs.version }}.apk
       - name: Creating Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
@@ -40,4 +41,4 @@ jobs:
           sudo apt update
           sudo apt install gh
           echo ${VERSION} | gh release create ${VERSION}
-          gh release upload ${VERSION} fall-detector/build/outputs/apk/release/fall-detector.${VERSION}.apk
+          gh release upload ${VERSION} fall-detector/build/outputs/apk/debug/fall-detector.${VERSION}.apk
