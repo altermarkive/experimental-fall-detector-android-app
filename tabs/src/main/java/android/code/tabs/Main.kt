@@ -1,129 +1,116 @@
-package android.code.tabs;
+package android.code.tabs
 
-import java.util.Objects;
-import java.util.Vector;
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
+import java.util.*
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+class Main : AppCompatActivity(), OnTabSelectedListener {
+    private var tabs: TabLayout? = null
+    private var content: FrameLayout? = null
+    private var counter = 1
 
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-
-import com.google.android.material.tabs.TabLayout;
-
-public class Main extends AppCompatActivity implements TabLayout.OnTabSelectedListener {
-    private TabLayout tabs;
-    private FrameLayout content;
-    private int counter = 1;
-
-    @Override
-    public void onTabSelected(TabLayout.Tab tab) {
-        show(tabs.getSelectedTabPosition());
+    override fun onTabSelected(tab: TabLayout.Tab) {
+        val tabs = tabs ?: return
+        show(tabs.selectedTabPosition)
     }
 
-    @Override
-    public void onTabUnselected(TabLayout.Tab tab) {
+    override fun onTabUnselected(tab: TabLayout.Tab) {}
+
+    override fun onTabReselected(tab: TabLayout.Tab) {
+        val tabs = tabs ?: return
+        show(tabs.selectedTabPosition)
     }
 
-    @Override
-    public void onTabReselected(TabLayout.Tab tab) {
-        show(tabs.getSelectedTabPosition());
-    }
+    private class Spec(val title: String, val content: View)
 
-    private static class Spec {
-        public final String title;
-        public final View content;
+    private val specs = Vector<Spec>()
 
-        public Spec(String title, View content) {
-            this.title = title;
-            this.content = content;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.main)
+        val tabs: TabLayout? = findViewById(R.id.tabs)
+        this.tabs = tabs
+        content = findViewById(R.id.content)
+        for (i in 0..9) {
+            add()
         }
+        status("Ready")
+        tabs?.addOnTabSelectedListener(this)
     }
 
-    private final Vector<Spec> specs = new Vector<>();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        tabs = findViewById(R.id.tabs);
-        content = findViewById(R.id.content);
-        for (int i = 0; i < 10; i++) {
-            add();
-        }
-        status("Ready");
-        tabs.addOnTabSelectedListener(this);
+    override fun onCreatePanelMenu(featureId: Int, menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main, menu)
+        return true
     }
 
-    public boolean onCreatePanelMenu(int featureId, @NonNull Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
-        return (true);
-    }
-
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val itemId = item.itemId
         if (itemId == R.id.add) {
-            add();
-            return (true);
+            add()
+            return true
         }
         if (itemId == R.id.remove) {
-            remove();
-            return (true);
+            remove()
+            return true
         }
-        return (false);
+        return false
     }
 
-    private void status(final String text) {
-        final TextView status = findViewById(R.id.status);
-        runOnUiThread(() -> status.setText(text));
+    private fun status(text: String) {
+        val status = findViewById<TextView>(R.id.status)
+        runOnUiThread { status.text = text }
     }
 
-    private void refresh() {
-        tabs.removeAllTabs();
-        for (int index = 0; index < specs.size(); index++) {
-            Spec spec = specs.get(index);
-            final int position = index;
-            runOnUiThread(() -> {
-                TabLayout.Tab firstTab = tabs.newTab();
-                firstTab.setText(spec.title);
-                tabs.addTab(firstTab, position, position == 0);
-            });
+    private fun refresh() {
+        val tabs = tabs ?: return
+        tabs.removeAllTabs()
+        for (index in specs.indices) {
+            val spec = specs[index]
+            runOnUiThread {
+                val firstTab = tabs.newTab()
+                firstTab.text = spec.title
+                tabs.addTab(firstTab, index, index == 0)
+            }
         }
-        select(0);
-        show(0);
+        select(0)
+        show(0)
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private void select(int index) {
-        Objects.requireNonNull(tabs.getTabAt(index)).select();
+    @Suppress("SameParameterValue")
+    private fun select(index: Int) {
+        tabs?.getTabAt(index)?.select()
     }
 
-    private void show(int index) {
-        content.removeAllViews();
-        content.addView(specs.get(index).content);
+    private fun show(index: Int) {
+        val content = content ?: return
+        content.removeAllViews()
+        content.addView(specs[index].content)
     }
 
-    private void add() {
-        String title = "Tab " + counter++;
-        final Content content = new Content(this);
-        content.title = title;
-        content.setClickable(true);
-        specs.add(new Spec(title, content));
-        status("Added " + title);
-        refresh();
+    private fun add() {
+        val title = "Tab " + counter++
+        val content = Content(this)
+        content.title = title
+        content.isClickable = true
+        specs.add(Spec(title, content))
+        status("Added $title")
+        refresh()
     }
 
-    private void remove() {
-        int index = tabs.getSelectedTabPosition();
-        String title = specs.get(index).title;
-        specs.remove(index);
-        status("Removed " + title);
-        refresh();
+    private fun remove() {
+        val tabs = tabs ?: return
+        val index = tabs.selectedTabPosition
+        val title = specs[index].title
+        specs.removeAt(index)
+        status("Removed $title")
+        refresh()
     }
 }
