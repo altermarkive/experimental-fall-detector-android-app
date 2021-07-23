@@ -16,7 +16,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 30
         versionCode countCommits()
-        versionName "0.1.0"
+        versionName '$TAG'
     }
 
     buildTypes {
