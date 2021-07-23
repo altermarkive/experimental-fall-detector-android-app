@@ -1,24 +1,29 @@
 package android.code.tabs;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
-import android.os.Build;
+import android.graphics.PixelFormat;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceHolder.Callback;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-@SuppressWarnings("SynchronizeOnNonFinalField")
-@SuppressLint("ClickableViewAccessibility")
-public class Content extends View implements OnTouchListener {
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class Content extends SurfaceView implements Callback, Runnable, OnTouchListener {
     private static final PaintFlagsDrawFilter ANTIALIAS_FILTER = new PaintFlagsDrawFilter(
             1, Paint.ANTI_ALIAS_FLAG);
     private Paint foreground;
     private Paint background;
-    private String title = "";
+    protected String title = "";
     private static Matrix reference = null;
     private static Matrix operation = null;
     private static float deltaX = 0;
@@ -32,6 +37,8 @@ public class Content extends View implements OnTouchListener {
     private static float limitX;
     private static float limitY;
     private static boolean gesture = false;
+    private final SurfaceHolder holder = getHolder();
+    private ScheduledExecutorService executor = null;
 
     private void init() {
         foreground = new Paint();
@@ -46,39 +53,42 @@ public class Content extends View implements OnTouchListener {
     public Content(Context context) {
         super(context);
         init();
+        setZOrderOnTop(true);
+        holder.setFormat(PixelFormat.TRANSLUCENT);
+        holder.addCallback(this);
+        setOnTouchListener(this);
     }
 
-    public Content(Context context, String title) {
-        this(context);
-        this.title = title;
+    public Content(Context context, AttributeSet attributes) {
+        super(context, attributes);
+        init();
+        setZOrderOnTop(true);
+        holder.setFormat(PixelFormat.TRANSLUCENT);
+        holder.addCallback(this);
+        setOnTouchListener(this);
     }
 
-    public void onDraw(Canvas gfx) {
+    public void surfaceDraw(Canvas gfx) {
         int width = getWidth();
         int height = getHeight();
         gfx.setDrawFilter(ANTIALIAS_FILTER);
         if (null == operation || null == reference) {
-            @SuppressWarnings("deprecation")
-            Matrix matrix = gfx.getMatrix();
+            Matrix matrix = getMatrix();
             matrix.getValues(rawOnTouch);
             limitX = rawOnTouch[Matrix.MTRANS_X];
             limitY = rawOnTouch[Matrix.MTRANS_Y];
             operation = new Matrix(matrix);
             reference = new Matrix(matrix);
         }
-        synchronized (operation) {
+        synchronized (this) {
             operation.getValues(rawOnPaint);
-            if (Build.VERSION.SDK_INT <= 10) {
-                gfx.setMatrix(operation);
-            } else {
-                gfx.translate(rawOnPaint[Matrix.MTRANS_X],
-                        rawOnPaint[Matrix.MTRANS_Y]);
-                gfx.scale(rawOnPaint[Matrix.MSCALE_X],
-                        rawOnPaint[Matrix.MSCALE_Y]);
-            }
+            gfx.translate(rawOnPaint[Matrix.MTRANS_X],
+                    rawOnPaint[Matrix.MTRANS_Y]);
+            gfx.scale(rawOnPaint[Matrix.MSCALE_X],
+                    rawOnPaint[Matrix.MSCALE_Y]);
         }
         gfx.drawRect(0, 0, width, height, background);
-        gfx.drawText(title, width / 2, height / 2, foreground);
+        gfx.drawText(title, width / 2f, height / 2f, foreground);
     }
 
     public boolean onTouch(View content, MotionEvent event) {
@@ -88,10 +98,27 @@ public class Content extends View implements OnTouchListener {
         }
         int width = getWidth();
         int height = getHeight();
-        synchronized (operation) {
+        synchronized (this) {
+            if (event.getPointerCount() < 2) {
+                return false;
+            }
             pinchSpan(event);
             pinchPrepare(event, width, height);
             return (pinchProcess(event, width, height));
+        }
+    }
+
+    @Override
+    public void run() {
+        Canvas gfx = holder.lockCanvas();
+        if (gfx != null) {
+            try {
+                synchronized (holder) {
+                    surfaceDraw(gfx);
+                }
+            } finally {
+                holder.unlockCanvasAndPost(gfx);
+            }
         }
     }
 
@@ -206,5 +233,20 @@ public class Content extends View implements OnTouchListener {
                 break;
         }
         return result;
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(this, 0, 40, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        executor.shutdown();
     }
 }
