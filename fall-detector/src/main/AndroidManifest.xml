@@ -49,10 +49,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="altermarkive.guardian.Settings"
-            android:screenOrientation="portrait"
-            tools:ignore="LockedOrientationActivity" />
-        <activity
             android:name="altermarkive.guardian.Contact"
             android:label="@string/contact"
             android:screenOrientation="portrait"
@@ -62,7 +58,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="altermarkive.guardian.Signals" />
 
         <receiver
             android:name="altermarkive.guardian.Boot"
