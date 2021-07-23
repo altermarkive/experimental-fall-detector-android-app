@@ -24,8 +24,7 @@ jobs:
         run: |
           sed -i "s/0\.0\.0/${VERSION}/g" fall-detector/build.gradle
           /bin/bash ./gradlew assembleDebug --stacktrace
-          ls -l fall-detector/build/outputs/apk/debug/
-          mv fall-detector/build/outputs/apk/debug/fall-detector-debug-signed.apk fall-detector/build/outputs/apk/debug/fall-detector.${VERSION}.apk
+          mv fall-detector/build/outputs/apk/debug/fall-detector-debug.apk fall-detector/build/outputs/apk/debug/fall-detector.${VERSION}.apk
       - name: Uploading Artifact
         uses: actions/upload-artifact@v2.2.4
         with:
