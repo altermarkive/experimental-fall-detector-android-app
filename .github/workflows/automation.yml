@@ -1,0 +1,19 @@
+name: Automation Script
+
+on: [push]
+
+jobs:
+  pipeline:
+    name: Pipeline
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Initiating
+        uses: actions/checkout@v2.3.4
+      - name: Installing Java Development Kit
+        uses: actions/setup-java@v2.1.0
+        with:
+          java-version: 1.8
+      - name: Building APK
+        run: |
+          /bin/bash ./gradlew assemble --stacktrace
+          ls -l fall-detector/build/outputs/apk/release/
