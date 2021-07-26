@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Tabs</string>
+    <string name="empty" />
+    <string name="label_add">Add</string>
+    <string name="label_remove">Remove</string>
+
+</resources>
