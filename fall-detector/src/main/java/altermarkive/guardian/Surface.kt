@@ -12,6 +12,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
+import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
@@ -69,9 +70,13 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
 
     override fun run() {
         running = true
+        val parent: View = parent as View
+        val live: SwitchMaterial = parent.findViewById(R.id.live)
         while (running) {
-            synchronized(Detector.singleton.buffers) {
-                Detector.singleton.buffers.copyInto(buffers)
+            if (live.isChecked) {
+                synchronized(Detector.singleton.buffers) {
+                    Detector.singleton.buffers.copyInto(buffers)
+                }
             }
             val gfx = surfaceHolder.lockCanvas()
             if (gfx != null) {
