@@ -56,8 +56,10 @@ class About : Fragment(), View.OnClickListener {
         }
         val binding = this.binding ?: return
         val status = binding.findViewById<View>(R.id.status) as TextView
-        status.text = statusText
-        status.setTextColor(statusColor)
+        activity?.runOnUiThread {
+            status.text = statusText
+            status.setTextColor(statusColor)
+        }
     }
 
     private fun permitted(request: Boolean): Boolean {
@@ -81,21 +83,22 @@ class About : Fragment(), View.OnClickListener {
         return granted
     }
 
-    private val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-        var granted = true
-        for (permission in permissions) {
-            granted = granted && permission.value
+    private val requestPermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            var granted = true
+            for (permission in permissions) {
+                granted = granted && permission.value
+            }
+            if (!granted) {
+                Guardian.say(
+                    requireActivity().applicationContext,
+                    Log.ERROR,
+                    TAG,
+                    "ERROR: Permissions were not granted"
+                )
+            }
+            refreshPermissions(false)
         }
-        if (!granted) {
-            Guardian.say(
-                requireActivity().applicationContext,
-                Log.ERROR,
-                TAG,
-                "ERROR: Permissions were not granted"
-            )
-        }
-        refreshPermissions(false)
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

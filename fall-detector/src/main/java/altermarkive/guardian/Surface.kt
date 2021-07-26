@@ -7,23 +7,22 @@ import android.graphics.PaintFlagsDrawFilter
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.SparseArray
-import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import android.view.View.OnTouchListener
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.tabs.TabLayout
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
 
 class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(context, attributes),
-    SurfaceHolder.Callback, Runnable, OnTouchListener {
-    private class Signal(val label: String, val color: Int, val buffer: Int)
+    SurfaceHolder.Callback, Runnable, TabLayout.OnTabSelectedListener {
+    class Signal(val label: String, val color: Int, val buffer: Int)
 
-    private class Threshold(val label: String, val color: Int, val value: Double)
+    class Threshold(val label: String, val color: Int, val value: Double)
 
-    private class Chart(
+    class Chart(
         val label: String, val min: Float, val max: Float, val signals: Array<Signal>,
         val thresholds: Array<Threshold>
     )
@@ -55,17 +54,16 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
         }
     }
 
-    override fun onTouch(view: View, event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            var replacing = selected + CHARTS.size
-            if (event.x < width / 2) {
-                replacing--
-            } else {
-                replacing++
-            }
-            selected = replacing % CHARTS.size
-        }
-        return true
+    override fun onTabSelected(tab: TabLayout.Tab) {
+        val parent = tab.parent ?: return
+        selected = parent.selectedTabPosition
+    }
+
+    override fun onTabUnselected(tab: TabLayout.Tab) {}
+
+    override fun onTabReselected(tab: TabLayout.Tab) {
+        val parent = tab.parent ?: return
+        selected = parent.selectedTabPosition
     }
 
     override fun run() {
@@ -194,9 +192,9 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
     }
 
     companion object {
-        private val CHARTS = arrayOf(
+        val CHARTS = arrayOf(
             Chart(
-                "Accelerometer", -2.0f, 2.0f, arrayOf(
+                "Acc.", -2.0f, 2.0f, arrayOf(
                     Signal("X", -0x10000, Detector.BUFFER_X),
                     Signal("Y", -0xff0100, Detector.BUFFER_Y),
                     Signal("Z", -0xffff01, Detector.BUFFER_Z)
@@ -206,7 +204,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
                 )
             ),
             Chart(
-                "X Axis", -2.0f, 2.0f, arrayOf(
+                "Acc. X", -2.0f, 2.0f, arrayOf(
                     Signal("X", -0x10000, Detector.BUFFER_X),
                     Signal("X LPF", -0xff0100, Detector.BUFFER_X_LPF),
                     Signal("X HPF", -0xffff01, Detector.BUFFER_X_HPF)
@@ -216,7 +214,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
                 )
             ),
             Chart(
-                "Y Axis", -2.0f, 2.0f, arrayOf(
+                "Acc. Y", -2.0f, 2.0f, arrayOf(
                     Signal("Y", -0x10000, Detector.BUFFER_Y),
                     Signal("Y LPF", -0xff0100, Detector.BUFFER_Y_LPF),
                     Signal("Y HPF", -0xffff01, Detector.BUFFER_Y_HPF)
@@ -226,7 +224,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
                 )
             ),
             Chart(
-                "Z Axis", -2.0f, 2.0f, arrayOf(
+                "Acc. Z", -2.0f, 2.0f, arrayOf(
                     Signal("Z", -0x10000, Detector.BUFFER_Z),
                     Signal("Z LPF", -0xff0100, Detector.BUFFER_Z_LPF),
                     Signal("Z HPF", -0xffff01, Detector.BUFFER_Z_HPF)
@@ -236,7 +234,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
                 )
             ),
             Chart(
-                "Deltas", -2.0f, 2.0f, arrayOf(
+                "Δ", -2.0f, 2.0f, arrayOf(
                     Signal("X D", -0x10000, Detector.BUFFER_X_MAX_MIN),
                     Signal("Y D", -0xff0100, Detector.BUFFER_Y_MAX_MIN),
                     Signal("Z D", -0xffff01, Detector.BUFFER_Z_MAX_MIN)
@@ -246,7 +244,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
                 )
             ),
             Chart(
-                "Thresholds", -1.0f, 6.0f, arrayOf(
+                "Thr.", -1.0f, 6.0f, arrayOf(
                     Signal("SV TOT", -0x10000, Detector.BUFFER_SV_TOT),
                     Signal("SV D", -0xff0100, Detector.BUFFER_SV_D),
                     Signal("SV MAX MIN", -0xffff01, Detector.BUFFER_SV_MAX_MIN),
@@ -264,7 +262,7 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
                 )
             ),
             Chart(
-                "Events", -0.5f, 1.5f, arrayOf(
+                "Evt.", -0.5f, 1.5f, arrayOf(
                     Signal("Falling", -0xff0100, Detector.BUFFER_FALLING),
                     Signal("Impact", -0xffff01, Detector.BUFFER_IMPACT),
                     Signal("Lying", -0x10000, Detector.BUFFER_LYING)
@@ -301,6 +299,5 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
 
     init {
         surfaceHolder.addCallback(this)
-        setOnTouchListener(this)
     }
 }
