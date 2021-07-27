@@ -1,4 +1,4 @@
-package android.code.tabs
+package altermarkive.guardian
 
 import android.content.Context
 import android.graphics.*
@@ -12,11 +12,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class Content : SurfaceView, SurfaceHolder.Callback, Runnable, OnTouchListener {
+abstract class Zoomable(context: Context?, attributes: AttributeSet?) :
+    SurfaceView(context, attributes), SurfaceHolder.Callback, Runnable, OnTouchListener {
     companion object {
-        private val ANTIALIAS_FILTER = PaintFlagsDrawFilter(
-            1, Paint.ANTI_ALIAS_FLAG
-        )
         private var reference: Matrix? = null
         private var operation: Matrix? = null
         private var deltaX = 0f
@@ -42,42 +40,10 @@ class Content : SurfaceView, SurfaceHolder.Callback, Runnable, OnTouchListener {
         private var gesture = false
     }
 
-    private var foreground: Paint? = null
-    private var background: Paint? = null
-    var title = ""
     private val surfaceHolder = holder
     private var executor: ScheduledExecutorService? = null
 
-    private fun init() {
-        foreground = Paint()
-        foreground?.textSize = 56f
-        foreground?.color = -0x10000
-        background = Paint()
-        background?.textSize = 56f
-        background?.color = -0x1
-        setOnTouchListener(this)
-    }
-
-    constructor(context: Context?) : super(context) {
-        init()
-        setZOrderOnTop(true)
-        surfaceHolder.setFormat(PixelFormat.TRANSLUCENT)
-        surfaceHolder.addCallback(this)
-        setOnTouchListener(this)
-    }
-
-    constructor(context: Context?, attributes: AttributeSet?) : super(context, attributes) {
-        init()
-        setZOrderOnTop(true)
-        surfaceHolder.setFormat(PixelFormat.TRANSLUCENT)
-        surfaceHolder.addCallback(this)
-        setOnTouchListener(this)
-    }
-
-    private fun surfaceDraw(gfx: Canvas) {
-        val width = width
-        val height = height
-        gfx.drawFilter = ANTIALIAS_FILTER
+    private fun surfaceDrawInternal(gfx: Canvas) {
         if (null == operation || null == reference) {
             val matrix = matrix
             matrix.getValues(rawOnTouch)
@@ -98,11 +64,10 @@ class Content : SurfaceView, SurfaceHolder.Callback, Runnable, OnTouchListener {
                 rawOnPaint[Matrix.MSCALE_Y]
             )
         }
-        val background = background ?: return
-        gfx.drawRect(0f, 0f, width.toFloat(), height.toFloat(), background)
-        val foreground = foreground ?: return
-        gfx.drawText(title, width / 2f, height / 2f, foreground)
+        surfaceDraw(gfx)
     }
+
+    abstract fun surfaceDraw(gfx: Canvas)
 
     override fun onTouch(content: View, event: MotionEvent): Boolean {
         invalidate()
@@ -113,7 +78,7 @@ class Content : SurfaceView, SurfaceHolder.Callback, Runnable, OnTouchListener {
         val height = height
         synchronized(this) {
             if (event.pointerCount < 2) {
-                return false
+                return true
             }
             pinchSpan(event)
             pinchPrepare(event, width, height)
@@ -125,7 +90,7 @@ class Content : SurfaceView, SurfaceHolder.Callback, Runnable, OnTouchListener {
         val gfx = surfaceHolder.lockCanvas()
         if (gfx != null) {
             try {
-                synchronized(surfaceHolder) { surfaceDraw(gfx) }
+                synchronized(surfaceHolder) { surfaceDrawInternal(gfx) }
             } finally {
                 surfaceHolder.unlockCanvasAndPost(gfx)
             }

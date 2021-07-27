@@ -8,7 +8,6 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.SparseArray
 import android.view.SurfaceHolder
-import android.view.SurfaceView
 import android.view.View
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.tabs.TabLayout
@@ -16,7 +15,7 @@ import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
 
-class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(context, attributes),
+class Surface(context: Context?, attributes: AttributeSet?) : Zoomable(context, attributes),
     SurfaceHolder.Callback, Runnable, TabLayout.OnTabSelectedListener {
     class Signal(val label: String, val color: Int, val buffer: Int)
 
@@ -28,31 +27,9 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
     )
 
     private val surfaceHolder = holder
-    private var running = false
-    private var thread: Thread? = null
     private var selected = 0
     private val bounds = Rect()
     private val buffers = Buffers(Detector.BUFFER_COUNT, Detector.N, 0, Double.NaN)
-
-    override fun surfaceCreated(holder: SurfaceHolder) {
-        val thread = Thread(this)
-        thread.start()
-        this.thread = thread
-    }
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
-        val thread = this.thread
-        if (null != thread) {
-            running = false
-            try {
-                thread.join()
-            } catch (ignored: InterruptedException) {
-            }
-            this.thread = null
-        }
-    }
 
     override fun onTabSelected(tab: TabLayout.Tab) {
         val parent = tab.parent ?: return
@@ -66,30 +43,16 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
         selected = parent.selectedTabPosition
     }
 
-    override fun run() {
-        running = true
+    override fun surfaceDraw(gfx: Canvas) {
         val parent: View = parent as View
         val live: SwitchMaterial = parent.findViewById(R.id.live)
-        while (running) {
-            if (live.isChecked) {
-                synchronized(Detector.singleton.buffers) {
-                    Detector.singleton.buffers.copyInto(buffers)
-                }
-            }
-            val gfx = surfaceHolder.lockCanvas()
-            if (gfx != null) {
-                val position = buffers.position
-                try {
-                    synchronized(surfaceHolder) { chart(gfx, position) }
-                } finally {
-                    surfaceHolder.unlockCanvasAndPost(gfx)
-                }
-            }
-            try {
-                Thread.sleep(1000)
-            } catch (ignored: InterruptedException) {
+        if (live.isChecked) {
+            synchronized(Detector.singleton.buffers) {
+                Detector.singleton.buffers.copyInto(buffers)
             }
         }
+        val position = buffers.position
+        chart(gfx, position)
     }
 
     private fun chart(gfx: Canvas, position: Int) {
@@ -299,5 +262,6 @@ class Surface(context: Context?, attributes: AttributeSet?) : SurfaceView(contex
 
     init {
         surfaceHolder.addCallback(this)
+        setOnTouchListener(this)
     }
 }
