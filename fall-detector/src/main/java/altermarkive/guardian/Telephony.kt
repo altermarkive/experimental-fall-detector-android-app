@@ -13,6 +13,7 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
@@ -22,6 +23,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import java.io.IOException
 import java.lang.reflect.Method
+
 
 // See also: https://stackoverflow.com/questions/51871673/how-to-answer-automatically-and-programatically-an-incoming-call-on-android
 
@@ -41,21 +43,24 @@ class Telephony : BroadcastReceiver() {
                 return
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
-                speakerphone(context)
+                speakerphone(context, true)
                 return
             }
             TelephonyManager.CALL_STATE_IDLE -> {
+                speakerphone(context, false)
                 return
             }
         }
     }
 
     companion object {
-        internal fun speakerphone(context: Context) {
+        internal fun speakerphone(context: Context, on: Boolean) {
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            audioManager.mode = AudioManager.MODE_IN_CALL
-            audioManager.isSpeakerphoneOn = true
-            Alarm.loudest(context, AudioManager.STREAM_VOICE_CALL)
+            if (on) {
+                audioManager.mode = AudioManager.MODE_IN_CALL
+                Alarm.loudest(context, AudioManager.STREAM_VOICE_CALL)
+            }
+            audioManager.isSpeakerphoneOn = on
         }
 
         private fun answer(context: Context) {
@@ -90,7 +95,6 @@ class Telephony : BroadcastReceiver() {
             } catch (exception: Exception) {
                 throughReceiver(context)
             }
-            speakerphone(context)
         }
 
         private fun getTelephonyService(context: Context): Any? {
@@ -204,7 +208,33 @@ class Telephony : BroadcastReceiver() {
         }
 
         internal fun call(context: Context, number: String) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                callNewer(context, number)
+            } else {
+                val applicationContext = context.applicationContext
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.CALL_PHONE
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Guardian.say(applicationContext, Log.ERROR, TAG, "ERROR: Not permitted to call")
+                } else {
+                    val call = Intent(Intent.ACTION_CALL, Uri.parse("tel:$number"))
+                    call.addFlags(FLAG_ACTIVITY_NEW_TASK)
+                    context.applicationContext.startActivity(call)
+                    speakerphone(applicationContext, true)
+                }
+            }
+        }
+
+        @RequiresApi(Build.VERSION_CODES.M)
+        private fun callNewer(context: Context, number: String) {
             val applicationContext = context.applicationContext
+            val uri = Uri.fromParts("tel", number, null)
+            val extras = Bundle()
+            extras.putBoolean(TelecomManager.EXTRA_START_CALL_WITH_SPEAKERPHONE, true)
+            val telecomManager =
+                context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
             if (ActivityCompat.checkSelfPermission(
                     context,
                     Manifest.permission.CALL_PHONE
@@ -212,10 +242,7 @@ class Telephony : BroadcastReceiver() {
             ) {
                 Guardian.say(applicationContext, Log.ERROR, TAG, "ERROR: Not permitted to call")
             } else {
-                val call = Intent(Intent.ACTION_CALL, Uri.parse("tel:$number"))
-                call.addFlags(FLAG_ACTIVITY_NEW_TASK)
-                context.applicationContext.startActivity(call)
-                speakerphone(applicationContext)
+                telecomManager.placeCall(uri, extras)
             }
         }
 
