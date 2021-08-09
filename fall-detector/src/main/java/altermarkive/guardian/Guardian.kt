@@ -14,6 +14,7 @@ class Guardian : Service() {
     override fun onCreate() {
         Positioning.initiate(this)
         Detector.instance(this)
+        Sampler.instance(this)
         Alarm.instance(this)
     }
 
