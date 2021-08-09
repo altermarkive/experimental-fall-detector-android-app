@@ -1,55 +1,54 @@
-package altermarkive.uploader;
+package altermarkive.uploader
 
-import android.content.Context;
-import android.os.PowerManager;
+import android.content.Context
+import android.os.PowerManager
 
-public class Sampler {
-    private final static String TAG = Sampler.class.getName();
+class Sampler private constructor(private val context: Context) {
+    private val config: Config
+    private val data: Data
+    fun context(): Context {
+        return context
+    }
 
-    private static volatile Sampler instance = null;
+    fun config(): Config {
+        return config
+    }
 
-    public static synchronized Sampler instance(Context context) {
-        if (instance == null) {
-            instance = new Sampler(context);
+    fun data(): Data {
+        return data
+    }
+
+    fun initiate(context: Context) {
+        val manager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val lock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG)
+        if (!lock.isHeld) {
+            lock.acquire()
         }
-        return instance;
+        initiate()
     }
 
-    private Context context;
-    private Config config;
-    private Data data;
+    private external fun initiate()
 
-    private Sampler(Context context) {
-        this.context = context;
-        config = new Config(this);
-        data = new Data();
-    }
+    companion object {
+        private val TAG = Sampler::class.java.name
 
-    public Context context() {
-        return context;
-    }
-
-    @SuppressWarnings("unused")
-    public Config config() {
-        return config;
-    }
-
-    public Data data() {
-        return data;
-    }
-
-    public void initiate(Context context) {
-        PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock lock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-        if (!lock.isHeld()) {
-            lock.acquire();
+        @Volatile
+        private var instance: Sampler? = null
+        @Synchronized
+        fun instance(context: Context): Sampler? {
+            if (instance == null) {
+                instance = Sampler(context)
+            }
+            return instance
         }
-        initiate();
+
+        init {
+            System.loadLibrary("sampler")
+        }
     }
 
-    private native void initiate();
-
-    static {
-        System.loadLibrary("sampler");
+    init {
+        config = Config(this)
+        data = Data()
     }
 }
