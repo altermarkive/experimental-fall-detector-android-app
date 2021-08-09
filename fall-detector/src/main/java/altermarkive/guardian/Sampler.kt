@@ -9,6 +9,7 @@ import android.hardware.SensorManager
 import android.os.PowerManager
 import android.util.Log
 import androidx.preference.PreferenceManager
+import org.json.JSONArray
 
 
 class Sampler private constructor(private val guardian: Guardian) : SensorEventListener {
@@ -28,15 +29,26 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
 
     @SuppressLint("WakelockTimeout")
     private fun initiate() {
-        val manager = context().getSystemService(Context.POWER_SERVICE) as PowerManager
+        val context = context()
+        val manager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val lock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG)
         if (!lock.isHeld) {
             lock.acquire()
         }
-        val context = context()
+        probe(context)
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
         if (preferences.getBoolean(context.getString(R.string.collection), false)) {
             sensors()
+        }
+    }
+
+    private fun probe(context: Context) {
+        val report = Report.probe(context)
+        val device = report.getJSONObject("device")
+        Log.i(TAG, "Device: $device")
+        val sensors = report.getJSONArray("sensors")
+        for (i in 0 until sensors.length()) {
+            Log.i(TAG, "Sensor: ${sensors.get(i)}")
         }
     }
 
@@ -44,14 +56,16 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         val manager = context().getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val list: List<Sensor> = manager.getSensorList(Sensor.TYPE_ALL)
         for (sensor in list) {
-            manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
+            if (sensor.type in MIN_TYPE..MAX_TYPE) {
+                manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
+            }
         }
     }
 
     companion object {
         private val TAG = Sampler::class.java.name
-        private val MIN_TYPE: Int = 1
-        private val MAX_TYPE: Int = 21
+        private const val MIN_TYPE: Int = 1
+        private const val MAX_TYPE: Int = 21
 
         @Volatile
         private var instance: Sampler? = null
@@ -77,6 +91,9 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        Log.i(TAG, "Sensor type ${sensor.type} (${sensor.name}, ${sensor.vendor}) changed accuracy to: $accuracy")
+        Log.i(
+            TAG,
+            "Sensor type ${sensor.type} (${sensor.name}, ${sensor.vendor}) changed accuracy to: $accuracy"
+        )
     }
 }
