@@ -1,22 +1,22 @@
-package altermarkive.uploader
+package altermarkive.guardian
 
 import android.content.Context
 import android.os.PowerManager
 
 class Sampler private constructor(private val context: Context) {
-    private val config: Config
-    private val data: Data
+//    private val config: Config
+//    private val data: Data
     fun context(): Context {
         return context
     }
 
-    fun config(): Config {
-        return config
-    }
+//    fun config(): Config {
+//        return config
+//    }
 
-    fun data(): Data {
-        return data
-    }
+//    fun data(): Data {
+//        return data
+//    }
 
     fun initiate(context: Context) {
         val manager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -48,7 +48,7 @@ class Sampler private constructor(private val context: Context) {
     }
 
     init {
-        config = Config(this)
-        data = Data()
+//        config = Config(this)
+//        data = Data()
     }
 }
