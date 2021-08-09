@@ -1,5 +1,6 @@
 package altermarkive.guardian
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.PowerManager
 
@@ -18,6 +19,7 @@ class Sampler private constructor(private val guardian: Guardian) {
 //        return data
 //    }
 
+    @SuppressLint("WakelockTimeout")
     private fun initiate() {
         val manager = context().getSystemService(Context.POWER_SERVICE) as PowerManager
         val lock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG)
