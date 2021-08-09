@@ -12,4 +12,12 @@
             <intent android:action="altermarkive.guardian.Contact" />
         </Preference>
     </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Data Collection Settings"
+        app:iconSpaceReserved="false">
+        <SwitchPreference
+            android:key="@string/collection"
+            android:title="@string/collecting"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
 </PreferenceScreen>

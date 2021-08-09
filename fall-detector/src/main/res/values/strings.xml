@@ -16,4 +16,6 @@
     <string name="emergency">Emergency</string>
     <string name="grant">Grant Permissions</string>
     <string name="live">Live</string>
+    <string name="collection">Collection</string>
+    <string name="collecting">Share sensor data with the emergency contact (requires restart)</string>
 </resources>

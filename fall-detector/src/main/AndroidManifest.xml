@@ -31,6 +31,10 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <!-- Using foreground service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Using the body sensors -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <!-- Using the forced wake state -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="false"
