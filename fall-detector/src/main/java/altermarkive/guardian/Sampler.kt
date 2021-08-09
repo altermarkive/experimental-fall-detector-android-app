@@ -43,10 +43,6 @@ class Sampler private constructor(private val guardian: Guardian) {
             }
             return instance
         }
-
-        init {
-            System.loadLibrary("sampler")
-        }
     }
 
     init {
