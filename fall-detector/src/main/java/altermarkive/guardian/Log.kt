@@ -1,46 +1,42 @@
-package altermarkive.uploader;
+package altermarkive.guardian
 
-import java.util.Date;
+import android.util.Log
+import java.util.*
 
-public class Log {
-    public static String LOG_FILE = "runtime.log";
-
-    public static void log(String priority, String tag, String entry) {
-        entry = String.format("%s\n%s: %s\n%s\n\n", new Date().toString(), priority, tag, entry);
-        Storage.appendText(LOG_FILE, entry);
+object Log {
+    var LOG_FILE = "runtime.log"
+    fun log(priority: String?, tag: String?, entry: String?) {
+        var entry = entry
+        entry = String.format("%s\n%s: %s\n%s\n\n", Date().toString(), priority, tag, entry)
+        Storage.appendText(LOG_FILE, entry)
     }
 
-    @SuppressWarnings("unused")
-    public static void v(String tag, String entry) {
+    fun v(tag: String?, entry: String?) {
         //android.util.Log.v(tag, entry);
-        log("VERBOSE", tag, entry);
+        log("VERBOSE", tag, entry)
     }
 
-    @SuppressWarnings("unused")
-    public static void d(String tag, String entry) {
+    fun d(tag: String?, entry: String?) {
         //android.util.Log.d(tag, entry);
-        log("DEBUG", tag, entry);
+        log("DEBUG", tag, entry)
     }
 
-    @SuppressWarnings("unused")
-    public static void i(String tag, String entry) {
+    fun i(tag: String?, entry: String?) {
         //android.util.Log.i(tag, entry);
-        log("INFO", tag, entry);
+        log("INFO", tag, entry)
     }
 
-    @SuppressWarnings("unused")
-    public static void w(String tag, String entry) {
+    fun w(tag: String?, entry: String?) {
         //android.util.Log.w(tag, entry);
-        log("WARN", tag, entry);
+        log("WARN", tag, entry)
     }
 
-    @SuppressWarnings("unused")
-    public static void e(String tag, String entry) {
+    fun e(tag: String?, entry: String?) {
         //android.util.Log.e(tag, entry);
-        log("ERROR", tag, entry);
+        log("ERROR", tag, entry)
     }
 
-    public static String getStackTraceString(Throwable throwable) {
-        return android.util.Log.getStackTraceString(throwable);
+    fun getStackTraceString(throwable: Throwable?): String {
+        return Log.getStackTraceString(throwable)
     }
 }
