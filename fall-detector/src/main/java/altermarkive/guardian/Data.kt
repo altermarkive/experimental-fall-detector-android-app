@@ -7,93 +7,83 @@ package altermarkive.guardian
 //import java.util.*
 //import java.util.zip.ZipEntry
 //import java.util.zip.ZipOutputStream
+import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.jvm.Synchronized
-//import kotlin.Throws
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
-class Data { //}: Runnable {
-//    private val bytes = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN)
-//    private val queue: Vector<Batch> = Vector<Batch>()
-//    private var portions = IntArray(0)
-//    private var storing = 0
-//    private var schedule: Long = 0
+class Data(private val root: File) : Runnable {
+    private var last: String? = null
+    private var db: SQLiteDatabase? = null
+    private val queue = ConcurrentLinkedQueue<ContentValues>()
+    private var scheduler = Executors.newScheduledThreadPool(1)
 
-//    fun initiate(sizes: IntArray, periods: IntArray, storing: Int) {
-//        this.storing = 0
-//        // Calculate the batch portions
-//        val portions = IntArray(sizes.size)
-//        Arrays.fill(portions, 0)
-//        for (i in sizes.indices) {
-//            if (periods[i] != 0) {
-//                portions[i] = sizes[i] * Math.ceil(
-//                    storing.toDouble() / periods[i].toDouble()
-//                ).toInt()
-//            }
-//        }
-//        // Initiate the batch queue
-//        queue.clear()
-//        this.portions = portions
-//        this.storing = storing
-//        advance()
-//    }
-
-    @Synchronized
-    fun dispatch(type: Int, stamp: Long, values: FloatArray) {
-//        val now = System.currentTimeMillis()
-//        val date = Date(now)
-//        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-//        format.format(date)
-
-//        if (storing != 0) {
-//            bytes.position(0)
-//            bytes.putLong(stamp)
-//            for (i in 0 until axes) {
-//                bytes.putFloat(values[i])
-//            }
-//            val batch: Batch = find(index)
-//            batch.append(index, bytes.array(), bytes.position())
-//            synchronized(this) { notifyAll() }
-//        }
+    private fun initiate() {
+        scheduler.scheduleAtFixedRate(this, 5, 5, TimeUnit.SECONDS)
     }
 
-//    override fun run() {
-//        while (true) {
-//            while (storing != 0 && 1 < queue.size) {
-//                val batch: Batch = queue.removeAt(0)
-//                zip(batch)
-//            }
-//            synchronized(this) {
-//                try {
-//                    wait()
-//                } catch (exception: InterruptedException) {
-//                    val trace: String = Log.getStackTraceString(exception)
-//                    val message = String.format("Data thread was interrupted:\n%s", trace)
-//                    Log.d(TAG, message)
-//                }
-//            }
-//        }
-//    }
+    internal fun dispatch(type: Int, timestamp: Long, values: FloatArray) {
+        val content = ContentValues()
+        content.put("stamp", System.currentTimeMillis())
+        content.put("timestamp", timestamp)
+        content.put("type", type)
+        for (i in 0..5) {
+            val column = "value$i"
+            if (i < values.size) {
+                content.put(column, values[i])
+            } else {
+                content.putNull(column)
+            }
+        }
+        queue.add(content)
+    }
 
-//    private fun advance(): Batch {
-//        val batch = Batch(portions)
-//        queue.add(batch)
-//        if (schedule == 0L) {
-//            schedule = System.currentTimeMillis()
-//        }
-//        schedule += storing.toLong()
-//        return batch
-//    }
+    internal fun log(priority: Int, tag: String, entry: String) {
+        val content = ContentValues()
+        content.put("stamp", System.currentTimeMillis())
+        content.put("priority", priority)
+        content.put("tag", tag)
+        content.put("entry", entry)
+        queue.add(content)
+    }
 
-//    private fun find(index: Int): Batch {
-//        val last: Batch = queue.lastElement()
-//        return if (schedule < System.currentTimeMillis() || last.full(index)) {
-//            advance()
-//        } else {
-//            last
-//        }
-//    }
+    override fun run() {
+        flush()
+    }
+
+    private fun flush() {
+        while (queue.peek() != null) {
+            queue.poll()
+            val db = find()
+            db.insert("data", null, queue.poll())
+        }
+    }
+
+    private fun advance(current: String): SQLiteDatabase {
+        this.db?.close()
+        last = current
+        val name = root.path + File.separator + current + ".sqlite3"
+        val db = SQLiteDatabase.openOrCreateDatabase(name, null)
+        db.execSQL("CREATE TABLE IF NOT EXISTS data(stamp INTEGER, timestamp INTEGER, type INTEGER, value0 REAL, value1 REAL, value2 REAL, value3 REAL, value4 REAL, value5 REAL);")
+        db.execSQL("CREATE TABLE IF NOT EXISTS logs(stamp INTEGER, priority INTEGER, tag VARCHAR, entry VARCHAR);")
+        this.db = db
+        return db
+    }
+
+    private fun find(): SQLiteDatabase {
+        val current = FORMAT.format(Date(System.currentTimeMillis()))
+        val db = this.db
+        return if (current != last || db == null) {
+            advance(current)
+        } else {
+            db
+        }
+    }
 
 //    private fun zip(batch: Batch) {
 //        val zipped = ByteArrayOutputStream()
@@ -134,10 +124,10 @@ class Data { //}: Runnable {
 
     companion object {
         private val TAG = Data::class.java.name
-        const val MIME = "application/zip"
+        private val FORMAT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     }
 
     init {
-//        Thread(this).start()
+        initiate()
     }
 }
