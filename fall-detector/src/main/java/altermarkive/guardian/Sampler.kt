@@ -50,16 +50,16 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         val manager = context().getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val list: List<Sensor> = manager.getSensorList(Sensor.TYPE_ALL)
         for (sensor in list) {
-            if (sensor.type in MIN_TYPE..MAX_TYPE) {
-                manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
+            when (sensor.type) {
+                Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_GYROSCOPE, Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_HEART_BEAT, Sensor.TYPE_LIGHT, Sensor.TYPE_PRESSURE, Sensor.TYPE_AMBIENT_TEMPERATURE, Sensor.TYPE_RELATIVE_HUMIDITY -> {
+                    manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
+                }
             }
         }
     }
 
     companion object {
         private val TAG = Sampler::class.java.name
-        private const val MIN_TYPE: Int = 1
-        private const val MAX_TYPE: Int = 13
 
         @Volatile
         private var instance: Sampler? = null
