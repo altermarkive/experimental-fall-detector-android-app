@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Using WiFi state toggling -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <!-- Using WebView -->
+    <!-- Using WebView and access to the internet-->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Using speaker volume control -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
