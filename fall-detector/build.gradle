@@ -3,7 +3,7 @@ plugins {
     id "kotlin-android"
 }
 
-def countCommits() {
+static def countCommits() {
     def text = 'git rev-list --count HEAD'.execute().text.trim()
     return text == '' ? 0 : text.toInteger()
 }
