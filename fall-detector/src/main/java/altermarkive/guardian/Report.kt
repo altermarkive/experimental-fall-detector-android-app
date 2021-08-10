@@ -104,11 +104,11 @@ object Report {
     }
 
     @SuppressLint("HardwareIds")
-    private fun id(context: Context): String {
+    internal fun id(context: Context): String {
         return Secure.getString(context.contentResolver, Secure.ANDROID_ID)
     }
 
-    private fun hash(text: String): String? {
+    internal fun hash(text: String): String? {
         var hash: String? = null
         try {
             val md = MessageDigest.getInstance("SHA-256")
