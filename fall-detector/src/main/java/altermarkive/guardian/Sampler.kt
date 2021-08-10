@@ -11,7 +11,7 @@ import android.util.Log
 import androidx.preference.PreferenceManager
 
 class Sampler private constructor(private val guardian: Guardian) : SensorEventListener {
-    private val data: Data = Data(guardian.applicationContext.filesDir)
+    private val data: Data = Data(guardian)
 
     fun context(): Context {
         return guardian.applicationContext

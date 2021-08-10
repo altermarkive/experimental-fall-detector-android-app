@@ -17,7 +17,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class Data(private val root: File) : Runnable {
+class Data(guardian: Guardian) : Runnable {
+    private val root = guardian.applicationContext.filesDir
     private var last: String? = null
     private var db: SQLiteDatabase? = null
     private val queue = ConcurrentLinkedQueue<Batch>()
