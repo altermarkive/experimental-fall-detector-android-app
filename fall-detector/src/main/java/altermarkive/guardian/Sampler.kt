@@ -59,7 +59,7 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
     companion object {
         private val TAG = Sampler::class.java.name
         private const val MIN_TYPE: Int = 1
-        private const val MAX_TYPE: Int = 21
+        private const val MAX_TYPE: Int = 13
 
         @Volatile
         private var instance: Sampler? = null
