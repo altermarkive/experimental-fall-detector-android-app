@@ -2,6 +2,7 @@ package altermarkive.guardian
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -10,18 +11,16 @@ import android.os.PowerManager
 import android.util.Log
 import androidx.preference.PreferenceManager
 import org.json.JSONArray
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class Sampler private constructor(private val guardian: Guardian) : SensorEventListener {
-    //    private val config: Config
 //    private val data: Data
+
     fun context(): Context {
         return guardian.applicationContext
     }
-
-//    fun config(): Config {
-//        return config
-//    }
 
 //    fun data(): Data {
 //        return data
@@ -82,12 +81,19 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
     }
 
     init {
-//        config = Config(this)
 //        data = Data()
         initiate()
     }
 
     override fun onSensorChanged(event: SensorEvent) {
+        val now = System.currentTimeMillis()
+        val date = Date(now)
+        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
+        format.format(date)
+        SQLiteDatabase.
+        // event.timestamp
+//        event.sensor.type
+//        event.values
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
