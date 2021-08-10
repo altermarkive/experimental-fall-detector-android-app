@@ -1,18 +1,11 @@
 package altermarkive.guardian
 
-//import java.io.ByteArrayOutputStream
-//import java.io.IOException
-//import java.nio.ByteBuffer
-//import java.nio.ByteOrder
-//import java.util.*
-//import java.util.zip.ZipEntry
-//import java.util.zip.ZipOutputStream
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
+import java.io.FilenameFilter
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -55,6 +48,7 @@ class Data(guardian: Guardian) : Runnable {
 
     override fun run() {
         flush()
+        sweep()
     }
 
     private fun flush() {
@@ -64,6 +58,35 @@ class Data(guardian: Guardian) : Runnable {
             val entry = queue.poll()
             entry ?: break
             db.insert(entry.table, null, entry.content)
+        }
+    }
+
+    private val sqlite3 = FilenameFilter { _, name -> name.endsWith(".sqlite3") }
+    private val zip = FilenameFilter { _, name -> name.endsWith(".zip") }
+
+    private fun sweep() {
+        val unzipped: Array<String>? = Storage.list(root.path, sqlite3)
+        if (unzipped != null && unzipped.isNotEmpty()) {
+            Arrays.sort(unzipped)
+            for (file in unzipped) {
+                val db = this.db
+                if ((db != null && db.path.endsWith(file))) {
+                    continue
+                }
+                Storage.zip(root.path, file)
+                Storage.delete(root.path, file)
+            }
+        }
+        val week = 7 * 24 * 60 * 60 * 1000
+        val zipped: Array<String>? = Storage.list(root.path, zip)
+        if (zipped != null && zipped.isNotEmpty()) {
+            Arrays.sort(zipped)
+            for (file in zipped) {
+                if (Storage.age(root.path, file) + week < System.currentTimeMillis()) {
+                    continue
+                }
+                Storage.delete(root.path, file)
+            }
         }
     }
 
@@ -88,60 +111,7 @@ class Data(guardian: Guardian) : Runnable {
         }
     }
 
-//    private fun zip(batch: Batch) {
-//        val zipped = ByteArrayOutputStream()
-//        val stream = ZipOutputStream(zipped)
-//        try {
-//            zipTextFile(stream, "device.json")
-//            zipTextFile(stream, Log.LOG_FILE)
-//            Storage.writeText(Log.LOG_FILE, "")
-//            batch.zip(stream)
-//            stream.close()
-//            val content = zipped.toByteArray()
-//            val name = java.lang.String.format("data.%016X.zip", batch.stamp())
-//            if (!Storage.writeBinary(name, content)) {
-//                Log.e(TAG, "Failed to write a ZIP file")
-//            }
-//        } catch (exception: IOException) {
-//            Log.e(
-//                TAG, """
-//     Failed to create a ZIP file:
-//     ${Log.getStackTraceString(exception)}
-//     """.trimIndent()
-//            )
-//        }
-//    }
-//
-//    @Throws(IOException::class)
-//    private fun zipTextFile(stream: ZipOutputStream, file: String) {
-//        val entry = ZipEntry(file)
-//        val content: String = Storage.readText(file)
-//        if (content != null) {
-//            val bytes = content.toByteArray()
-//            entry.size = bytes.size.toLong()
-//            stream.putNextEntry(entry)
-//            stream.write(bytes, 0, bytes.size)
-//            stream.closeEntry()
-//        }
-//    }
-//
-//    @Throws(IOException::class)
-//    fun zip(stream: ZipOutputStream) {
-//        for (i in buffers.indices) {
-//            val array: ByteArray = buffers[i].array()
-//            val size: Int = buffers[i].size()
-//            if (0 < size) {
-//                val entry = ZipEntry(String.format("data.%02d.bin", i))
-//                entry.size = size.toLong()
-//                stream.putNextEntry(entry)
-//                stream.write(array, 0, size)
-//                stream.closeEntry()
-//            }
-//        }
-//    }
-
     companion object {
-        private val TAG = Data::class.java.name
         private val FORMAT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     }
 

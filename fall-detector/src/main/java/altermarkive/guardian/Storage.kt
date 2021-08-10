@@ -1,39 +1,31 @@
 package altermarkive.guardian
 
 import android.util.Log
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FilenameFilter
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 object Storage {
     private val TAG = Storage::class.java.name
 
-    internal fun size(prefix: String, file: String): Long {
+    private fun size(prefix: String, file: String): Long {
         val path = File(prefix, file)
         return path.length()
-    }
-
-    internal fun readText(prefix: String, file: String): String? {
-        val size = size(prefix, file)
-        if (Int.MAX_VALUE < size) {
-            Log.d(TAG, "Cannot read file into memory")
-            return null
-        }
-        val buffer = ByteArray(size.toInt())
-        return if (readBinary(prefix, file, buffer)) {
-            String(buffer)
-        } else {
-            null
-        }
-    }
-
-    internal fun writeText(prefix: String, file: String, content: String): String? {
-        return if (writeBinary(prefix, file, content.toByteArray())) content else null
     }
 
     internal fun appendText(prefix: String, file: String, content: String): String? {
         return if (appendBinary(prefix, file, content.toByteArray())) content else null
     }
 
-    internal fun readBinary(prefix: String, file: String, content: ByteArray): Boolean {
+    private fun readBinary(prefix: String, file: String, content: ByteArray): Boolean {
         val path = File(prefix, file)
         val input: InputStream = try {
             FileInputStream(path)
@@ -67,15 +59,20 @@ object Storage {
         return result
     }
 
-    internal fun writeBinary(prefix: String, file: String, content: ByteArray): Boolean {
+    private fun writeBinary(prefix: String, file: String, content: ByteArray): Boolean {
         return writeBinary(prefix, file, content, false)
     }
 
-    internal fun appendBinary(prefix: String, file: String, content: ByteArray): Boolean {
+    private fun appendBinary(prefix: String, file: String, content: ByteArray): Boolean {
         return writeBinary(prefix, file, content, true)
     }
 
-    private fun writeBinary(prefix: String, file: String, content: ByteArray, append: Boolean): Boolean {
+    private fun writeBinary(
+        prefix: String,
+        file: String,
+        content: ByteArray,
+        append: Boolean
+    ): Boolean {
         val path = File(prefix, file)
         if (File(prefix).freeSpace < content.size) {
             val message = String.format("No space left for '%s'", file)
@@ -121,5 +118,42 @@ object Storage {
 
     internal fun list(prefix: String, filter: FilenameFilter): Array<String>? {
         return File(prefix).list(filter)
+    }
+
+    internal fun zip(prefix: String, file: String): Boolean {
+        val size = size(prefix, file)
+        if (size >= Integer.MAX_VALUE) {
+            Log.e(TAG, "File to large to write to a ZIP file")
+            return false
+        }
+        val array = ByteArray(size.toInt())
+        if (!readBinary(prefix, file, array)) {
+            return false
+        }
+        val zipped = ByteArrayOutputStream()
+        val stream = ZipOutputStream(zipped)
+        val entry = ZipEntry(file)
+        entry.size = size
+        try {
+            stream.putNextEntry(entry)
+            stream.write(array, 0, size.toInt())
+            stream.closeEntry()
+            stream.close()
+        } catch (exception: IOException) {
+            Log.e(TAG, "Failed to create a ZIP file:\n ${Log.getStackTraceString(exception)}")
+            return false
+        }
+        val content = zipped.toByteArray()
+        val name = "$file.zip"
+        if (!writeBinary(prefix, name, content)) {
+            Log.e(TAG, "Failed to write a ZIP file")
+            return false
+        }
+        return true
+    }
+
+
+    internal fun age(prefix: String, file: String): Long {
+        return File(prefix, file).lastModified()
     }
 }
