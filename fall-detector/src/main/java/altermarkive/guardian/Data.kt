@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 class Data(private val root: File) : Runnable {
     private var last: String? = null
     private var db: SQLiteDatabase? = null
-    private val queue = ConcurrentLinkedQueue<ContentValues>()
+    private val queue = ConcurrentLinkedQueue<Batch>()
     private var scheduler = Executors.newScheduledThreadPool(1)
 
     private fun initiate() {
@@ -40,7 +40,7 @@ class Data(private val root: File) : Runnable {
                 content.putNull(column)
             }
         }
-        queue.add(content)
+        queue.add(Batch("data", content))
     }
 
     internal fun log(priority: Int, tag: String, entry: String) {
@@ -49,7 +49,7 @@ class Data(private val root: File) : Runnable {
         content.put("priority", priority)
         content.put("tag", tag)
         content.put("entry", entry)
-        queue.add(content)
+        queue.add(Batch("logs", content))
     }
 
     override fun run() {
@@ -60,7 +60,9 @@ class Data(private val root: File) : Runnable {
         while (queue.peek() != null) {
             queue.poll()
             val db = find()
-            db.insert("data", null, queue.poll())
+            val entry = queue.poll()
+            entry ?: break
+            db.insert(entry.table, null, entry.content)
         }
     }
 
@@ -119,6 +121,21 @@ class Data(private val root: File) : Runnable {
 //            stream.putNextEntry(entry)
 //            stream.write(bytes, 0, bytes.size)
 //            stream.closeEntry()
+//        }
+//    }
+//
+//    @Throws(IOException::class)
+//    fun zip(stream: ZipOutputStream) {
+//        for (i in buffers.indices) {
+//            val array: ByteArray = buffers[i].array()
+//            val size: Int = buffers[i].size()
+//            if (0 < size) {
+//                val entry = ZipEntry(String.format("data.%02d.bin", i))
+//                entry.size = size.toLong()
+//                stream.putNextEntry(entry)
+//                stream.write(array, 0, size)
+//                stream.closeEntry()
+//            }
 //        }
 //    }
 
