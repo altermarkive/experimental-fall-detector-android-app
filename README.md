@@ -14,9 +14,14 @@ In short: When a fall is detected the app will send an SMS to the configured eme
 * For optimal performance (to reduce the number of false alarms and the number of undetected falls) carry the device close to your waist (a trouser pocket, a belt clip, etc.).
 * Keep your device charged at all times.
 
-See the screenshots of [the main screen](doc/screenshot.1.png) and [the configuration screen](doc/screenshot.2.png).
 Install the app by side-loading the APK file available [here](https://github.com/altermarkive/experimental-fall-detector-android-app/releases)
 (you can find more info about the process [here](https://www.howtogeek.com/313433/how-to-sideload-apps-on-android/))
+
+## SCREENSHOTS
+
+ EULA screen                   | About view with instructions & emergency button | Sensor & detection signals view (pausable & zoomable) | Settings view (to set emergency number & data collection) | Emergency number editor (with contact book lookup)
+:-----------------------------:|:-----------------------------------------------:|:-----------------------------------------------------:|:---------------------------------------------------------:|:--------------------------------------------------:
+ ![EULA](doc/screenshot.0.jpg) | ![About](doc/screenshot.1.jpg)                  | ![Signals](doc/screenshot.2.jpg)                      | ![Settings](doc/screenshot.3.jpg)                         | ![Contact](doc/screenshot.0.jpg)
 
 ## CREDITS
 
@@ -32,3 +37,5 @@ and published in Gait & Posture 28 (2008) by Elsevier (search for the paper [her
 The 2010 app was written in Java & C (both integrated via JNI and Android NDK) but I decided to port it to
 Kotlin to learn the language on a practical example. A couple of other aspects had to be updated too,
 including: permissions, image assets, deprecated APIs, theme, action layouts, Gradle files, etc.
+
+The app has also a partially integrated collection of sensor data for research purposes.
