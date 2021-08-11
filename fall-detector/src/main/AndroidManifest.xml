@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Using GPS location provider -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Using the monitoring of the Internet connectivity -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Using calling a phone -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- Using WiFi state toggling -->
@@ -93,6 +95,16 @@
             android:permission="android.permission.MODIFY_PHONE_STATE">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="altermarkive.guardian.Connectivity"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Connectivity Receiver"
+            android:permission="android.permission.ACCESS_NETWORK_STATE">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
 

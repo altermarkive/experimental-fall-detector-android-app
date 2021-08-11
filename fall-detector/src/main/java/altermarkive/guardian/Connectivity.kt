@@ -1,23 +1,25 @@
-package altermarkive.uploader;
+package altermarkive.guardian
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.net.ConnectivityManager
+import android.content.Context
 
-public class Connectivity extends BroadcastReceiver {
-    public final static String TAG = Connectivity.class.getName();
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
-            ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo info = manager.getActiveNetworkInfo();
-            if (info != null && info.isConnected()) {
-                Log.i(TAG, "Detected Internet connectivity");
-                Upload.instance().poke();
+class Connectivity : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        @Suppress("DEPRECATION")
+        if (ConnectivityManager.CONNECTIVITY_ACTION == intent.action) {
+            val manager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val info = manager.activeNetworkInfo
+            if (info != null && info.isConnected) {
+                Log.i(TAG, "Detected internet connectivity")
+                Upload.go(context.applicationContext, context.applicationContext.filesDir.path)
             }
         }
+    }
+
+    companion object {
+        private val TAG = Connectivity::class.java.name
     }
 }
