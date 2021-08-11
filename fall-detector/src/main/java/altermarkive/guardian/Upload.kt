@@ -4,7 +4,6 @@ import android.content.Context
 import io.ipfs.api.IPFS
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper
 import io.ipfs.multiaddr.MultiAddress
-import java.io.File
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.Executors
