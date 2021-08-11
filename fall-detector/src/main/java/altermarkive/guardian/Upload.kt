@@ -1,135 +1,131 @@
-package altermarkive.uploader;
+package altermarkive.guardian
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Arrays;
+import java.io.FilenameFilter
+import java.io.IOException
+import java.net.URL
+import java.util.*
+import kotlin.jvm.Volatile
+import kotlin.jvm.Synchronized
+import kotlin.Throws
 
-public class Upload implements Runnable {
-    private final static String TAG = Upload.class.getName();
-
-    private final static FilenameFilter filter = new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-            return name.endsWith(".zip");
-        }
-    };
-
-    private static volatile Upload instance = null;
-    private String url = null;
-
-    public static synchronized Upload instance() {
-        if (instance == null) {
-            instance = new Upload();
-        }
-        return instance;
+class Upload private constructor() : Runnable {
+    private var url: String? = null
+    private val thread: Thread
+    fun initiate(url: String?) {
+        this.url = url
     }
 
-    private final Thread thread;
-
-    private Upload() {
-        thread = new Thread(this);
-        thread.start();
-    }
-
-    public void initiate(String url) {
-        this.url = url;
-    }
-
-    @Override
-    public void run() {
-        //noinspection InfiniteLoopStatement
+    override fun run() {
         while (true) {
-            String[] files = Storage.list(filter);
-            if (files != null && 0 < files.length) {
-                Arrays.sort(files);
-                String item = files[0];
-                int hold = 1;
+            val files: Array<String> = Storage.list(filter)
+            if (files != null && 0 < files.size) {
+                Arrays.sort(files)
+                var item: String? = files[0]
+                var hold = 1
                 while (hold < 0x8000) {
                     try {
                         if (upload(url, Data.MIME, content(item), item)) {
-                            Storage.delete(item);
-                            item = null;
-                            break;
+                            Storage.delete(item)
+                            item = null
+                            break
                         }
-                    } catch (IOException exception) {
-                        String trace = Log.getStackTraceString(exception);
-                        String message = String.format("Failed to upload '%s':\n%s", item, trace);
-                        Log.e(TAG, message);
+                    } catch (exception: IOException) {
+                        val trace: String = Log.getStackTraceString(exception)
+                        val message = String.format("Failed to upload '%s':\n%s", item, trace)
+                        Log.e(TAG, message)
                     }
-                    Log.i(TAG, String.format("Will retry uploading in %d minutes", hold));
+                    Log.i(TAG, String.format("Will retry uploading in %d minutes", hold))
                     try {
-                        Thread.sleep(hold * 60000);
-                    } catch (InterruptedException exception) {
-                        String trace = Log.getStackTraceString(exception);
-                        String message = String.format("Interrupted during a back-off:\n%s", trace);
-                        Log.i(TAG, message);
+                        Thread.sleep((hold * 60000).toLong())
+                    } catch (exception: InterruptedException) {
+                        val trace: String = Log.getStackTraceString(exception)
+                        val message = String.format("Interrupted during a back-off:\n%s", trace)
+                        Log.i(TAG, message)
                     }
-                    hold <<= 1;
+                    hold = hold shl 1
                 }
                 if (item != null) {
-                    String message = String.format("Failed to upload, skipping '%s'", item);
-                    Log.e(TAG, message);
+                    val message = String.format("Failed to upload, skipping '%s'", item)
+                    Log.e(TAG, message)
                 }
             } else {
                 try {
-                    Thread.sleep(60000);
-                } catch (InterruptedException exception) {
-                    String trace = Log.getStackTraceString(exception);
-                    String message = String.format("Interrupted while waiting:\n%s", trace);
-                    Log.i(TAG, message);
+                    Thread.sleep(60000)
+                } catch (exception: InterruptedException) {
+                    val trace: String = Log.getStackTraceString(exception)
+                    val message = String.format("Interrupted while waiting:\n%s", trace)
+                    Log.i(TAG, message)
                 }
             }
         }
     }
 
-    private static byte[] content(String file) {
-        long size = Storage.size(file);
-        if (Integer.MAX_VALUE < size) {
-            String message = String.format("Cannot read file %s into memory", file);
-            Log.e(TAG, message);
-            return null;
-        }
-        byte[] array = new byte[(int) size];
-        if (!Storage.readBinary(file, array)) {
-            String message = String.format("Failed to read the file %s", file);
-            Log.e(TAG, message);
-            return null;
-        }
-        return array;
+    fun poke() {
+        thread.interrupt()
     }
 
+    companion object {
+        private val TAG = Upload::class.java.name
+        private val filter = FilenameFilter { dir, name -> name.endsWith(".zip") }
 
-    private static boolean upload(String url, String mime, byte[] content, String thing) throws
-            IOException {
-        if (content == null) {
-            String message = String.format("Failed to read the content of '%s'", thing);
-            Log.e(TAG, message);
-            return false;
+        @Volatile
+        private var instance: Upload? = null
+        @Synchronized
+        fun instance(): Upload? {
+            if (instance == null) {
+                instance = Upload()
+            }
+            return instance
         }
-        if (url == null || url.length() == 0) {
-            String message = String.format("Uploading '%s' skipped (URL not configured)", thing);
-            Log.i(TAG, message);
-            return false;
+
+        private fun content(file: String?): ByteArray? {
+            val size: Long = Storage.size(file)
+            if (Int.MAX_VALUE < size) {
+                val message = String.format("Cannot read file %s into memory", file)
+                Log.e(TAG, message)
+                return null
+            }
+            val array = ByteArray(size.toInt())
+            if (!Storage.readBinary(file, array)) {
+                val message = String.format("Failed to read the file %s", file)
+                Log.e(TAG, message)
+                return null
+            }
+            return array
         }
-        String message = String.format("Uploading '%s' to %s", thing, url);
-        Log.i(TAG, message);
-        URLConnection connection = new URL(url).openConnection();
-        connection.setDoOutput(true);
-        connection.setRequestProperty("Content-Type", mime);
-        OutputStream output = connection.getOutputStream();
-        output.write(content);
-        InputStream input = connection.getInputStream();
-        //noinspection ResultOfMethodCallIgnored
-        input.skip(input.available());
-        return true;
+
+        @Throws(IOException::class)
+        private fun upload(
+            url: String?,
+            mime: String,
+            content: ByteArray?,
+            thing: String?
+        ): Boolean {
+            if (content == null) {
+                val message = String.format("Failed to read the content of '%s'", thing)
+                Log.e(TAG, message)
+                return false
+            }
+            if (url == null || url.length == 0) {
+                val message = String.format("Uploading '%s' skipped (URL not configured)", thing)
+                Log.i(TAG, message)
+                return false
+            }
+            val message = String.format("Uploading '%s' to %s", thing, url)
+            Log.i(TAG, message)
+            val connection = URL(url).openConnection()
+            connection.doOutput = true
+            connection.setRequestProperty("Content-Type", mime)
+            val output = connection.getOutputStream()
+            output.write(content)
+            val input = connection.getInputStream()
+            input.skip(input.available().toLong())
+            return true
+        }
     }
 
-    public void poke() {
-        thread.interrupt();
+    init {
+        thread = Thread(this)
+        thread.start()
     }
 }
