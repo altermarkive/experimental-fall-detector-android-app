@@ -138,8 +138,10 @@ object Storage {
         return true
     }
 
-
     internal fun age(prefix: String, file: String): Long {
         return File(prefix, file).lastModified()
     }
+
+    internal val FILTER_SQLITE = FilenameFilter { _, name -> name.endsWith(".sqlite3") }
+    internal val FILTER_ZIP = FilenameFilter { _, name -> name.endsWith(".zip") }
 }

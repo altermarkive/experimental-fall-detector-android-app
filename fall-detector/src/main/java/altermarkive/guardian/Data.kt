@@ -3,7 +3,6 @@ package altermarkive.guardian
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
-import java.io.FilenameFilter
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -61,11 +60,8 @@ class Data(guardian: Guardian) : Runnable {
         }
     }
 
-    private val sqlite3 = FilenameFilter { _, name -> name.endsWith(".sqlite3") }
-    private val zip = FilenameFilter { _, name -> name.endsWith(".zip") }
-
     private fun sweep() {
-        val unzipped: Array<String>? = Storage.list(root.path, sqlite3)
+        val unzipped: Array<String>? = Storage.list(root.path, Storage.FILTER_SQLITE)
         if (unzipped != null && unzipped.isNotEmpty()) {
             Arrays.sort(unzipped)
             for (file in unzipped) {
@@ -78,7 +74,7 @@ class Data(guardian: Guardian) : Runnable {
             }
         }
         val week = 7 * 24 * 60 * 60 * 1000
-        val zipped: Array<String>? = Storage.list(root.path, zip)
+        val zipped: Array<String>? = Storage.list(root.path, Storage.FILTER_ZIP)
         if (zipped != null && zipped.isNotEmpty()) {
             Arrays.sort(zipped)
             for (file in zipped) {
