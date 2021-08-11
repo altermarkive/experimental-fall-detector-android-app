@@ -15,12 +15,12 @@ import java.util.zip.ZipOutputStream
 object Storage {
     private val TAG = Storage::class.java.name
 
-    private fun size(prefix: String, file: String): Long {
+    internal fun size(prefix: String, file: String): Long {
         val path = File(prefix, file)
         return path.length()
     }
 
-    private fun readBinary(prefix: String, file: String, content: ByteArray): Boolean {
+    internal fun readBinary(prefix: String, file: String, content: ByteArray): Boolean {
         val path = File(prefix, file)
         val input: InputStream = try {
             FileInputStream(path)

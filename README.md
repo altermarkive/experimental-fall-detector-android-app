@@ -38,4 +38,4 @@ The 2010 app was written in Java & C (both integrated via JNI and Android NDK) b
 Kotlin to learn the language on a practical example. A couple of other aspects had to be updated too,
 including: permissions, image assets, deprecated APIs, theme, action layouts, Gradle files, etc.
 
-The app has also a partially integrated collection of sensor data for research purposes.
+The app also allows to collect & share sensor data on IPFS for research purposes (it uses [IPFS HTTP client](https://github.com/ipfs-shipyard/java-ipfs-http-client), rather than [a full node](https://github.com/textileio/android-ipfs-lite)).

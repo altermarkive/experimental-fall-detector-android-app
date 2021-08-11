@@ -10,13 +10,13 @@ import android.os.PowerManager
 import androidx.preference.PreferenceManager
 
 class Sampler private constructor(private val guardian: Guardian) : SensorEventListener {
-    private val data: Data = Data(guardian)
+    private var data: Data? = null
 
     fun context(): Context {
         return guardian.applicationContext
     }
 
-    fun data(): Data {
+    fun data(): Data? {
         return data
     }
 
@@ -31,6 +31,7 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         probe(context)
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
         if (preferences.getBoolean(context.getString(R.string.collection), false)) {
+            data = Data(guardian)
             sensors()
         }
     }
@@ -79,7 +80,7 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        data.dispatch(event.sensor.type, event.timestamp, event.values)
+        data?.dispatch(event.sensor.type, event.timestamp, event.values)
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {

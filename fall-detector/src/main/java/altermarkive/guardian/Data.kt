@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class Data(guardian: Guardian) : Runnable {
+class Data(private val guardian: Guardian) : Runnable {
     private val root = guardian.applicationContext.filesDir
     private var last: String? = null
     private var db: SQLiteDatabase? = null
@@ -17,6 +17,7 @@ class Data(guardian: Guardian) : Runnable {
     private var scheduler = Executors.newScheduledThreadPool(1)
 
     private fun initiate() {
+        Upload()
         scheduler.scheduleAtFixedRate(this, 5, 5, TimeUnit.SECONDS)
     }
 
@@ -48,6 +49,7 @@ class Data(guardian: Guardian) : Runnable {
     override fun run() {
         flush()
         sweep()
+        Upload.go(guardian.applicationContext, root.path)
     }
 
     private fun flush() {
