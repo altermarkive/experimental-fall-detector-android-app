@@ -1,6 +1,5 @@
 package altermarkive.guardian
 
-import android.util.Log
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -21,16 +20,12 @@ object Storage {
         return path.length()
     }
 
-    internal fun appendText(prefix: String, file: String, content: String): String? {
-        return if (appendBinary(prefix, file, content.toByteArray())) content else null
-    }
-
     private fun readBinary(prefix: String, file: String, content: ByteArray): Boolean {
         val path = File(prefix, file)
         val input: InputStream = try {
             FileInputStream(path)
         } catch (exception: FileNotFoundException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("Failed to open '%s' for reading:\n%s", file, trace)
             Log.d(TAG, message)
             return false
@@ -43,7 +38,7 @@ object Storage {
                 result = false
             }
         } catch (exception: IOException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("Failed to read '%s':\n%s", file, trace)
             Log.d(TAG, message)
             result = false
@@ -51,7 +46,7 @@ object Storage {
         try {
             input.close()
         } catch (exception: IOException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("Failed to close '%s':\n%s", file, trace)
             Log.d(TAG, message)
             result = false
@@ -59,19 +54,10 @@ object Storage {
         return result
     }
 
-    private fun writeBinary(prefix: String, file: String, content: ByteArray): Boolean {
-        return writeBinary(prefix, file, content, false)
-    }
-
-    private fun appendBinary(prefix: String, file: String, content: ByteArray): Boolean {
-        return writeBinary(prefix, file, content, true)
-    }
-
     private fun writeBinary(
         prefix: String,
         file: String,
-        content: ByteArray,
-        append: Boolean
+        content: ByteArray
     ): Boolean {
         val path = File(prefix, file)
         if (File(prefix).freeSpace < content.size) {
@@ -80,9 +66,9 @@ object Storage {
             return false
         }
         val output: OutputStream = try {
-            FileOutputStream(path, append)
+            FileOutputStream(path, false)
         } catch (exception: FileNotFoundException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("Failed to open '%s' for writing:\n%s", file, trace)
             Log.d(TAG, message)
             return false
@@ -91,7 +77,7 @@ object Storage {
         try {
             output.write(content)
         } catch (exception: IOException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("Failed to write '%s':\n%s", file, trace)
             Log.d(TAG, message)
             result = false
@@ -99,7 +85,7 @@ object Storage {
         try {
             output.close()
         } catch (exception: IOException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("Failed to close '%s':\n%s", file, trace)
             Log.d(TAG, message)
             result = false
@@ -140,7 +126,7 @@ object Storage {
             stream.closeEntry()
             stream.close()
         } catch (exception: IOException) {
-            Log.e(TAG, "Failed to create a ZIP file:\n ${Log.getStackTraceString(exception)}")
+            Log.e(TAG, "Failed to create a ZIP file:\n ${android.util.Log.getStackTraceString(exception)}")
             return false
         }
         val content = zipped.toByteArray()

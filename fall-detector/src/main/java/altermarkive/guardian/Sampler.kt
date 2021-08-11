@@ -7,7 +7,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.PowerManager
-import android.util.Log
 import androidx.preference.PreferenceManager
 
 class Sampler private constructor(private val guardian: Guardian) : SensorEventListener {
@@ -17,9 +16,9 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         return guardian.applicationContext
     }
 
-//    fun data(): Data {
-//        return data
-//    }
+    fun data(): Data {
+        return data
+    }
 
     @SuppressLint("WakelockTimeout")
     private fun initiate() {
@@ -62,7 +61,7 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         private val TAG = Sampler::class.java.name
 
         @Volatile
-        private var instance: Sampler? = null
+        internal var instance: Sampler? = null
 
         @Synchronized
         fun instance(guardian: Guardian): Sampler {

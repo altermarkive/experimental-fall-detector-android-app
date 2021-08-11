@@ -17,7 +17,6 @@ import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
-import android.util.Log
 import android.view.KeyEvent
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -35,9 +34,9 @@ class Telephony : BroadcastReceiver() {
             TelephonyManager.CALL_STATE_RINGING -> {
                 @Suppress("DEPRECATION")
                 val contact = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
-                Guardian.say(context, Log.WARN, TAG, "Receiving call from ${contact.toString()}")
+                Guardian.say(context, android.util.Log.WARN, TAG, "Receiving call from ${contact.toString()}")
                 if (Contact.check(context, contact)) {
-                    Guardian.say(context, Log.WARN, TAG, "Answering the call")
+                    Guardian.say(context, android.util.Log.WARN, TAG, "Answering the call")
                     answer(context)
                 }
                 return
@@ -76,7 +75,7 @@ class Telephony : BroadcastReceiver() {
                         ) {
                             Guardian.say(
                                 context,
-                                Log.ERROR,
+                                android.util.Log.ERROR,
                                 TAG,
                                 "ERROR: No permission to accept calls"
                             )
@@ -217,7 +216,7 @@ class Telephony : BroadcastReceiver() {
                         Manifest.permission.CALL_PHONE
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
-                    Guardian.say(applicationContext, Log.ERROR, TAG, "ERROR: Not permitted to call")
+                    Guardian.say(applicationContext, android.util.Log.ERROR, TAG, "ERROR: Not permitted to call")
                 } else {
                     val call = Intent(Intent.ACTION_CALL, Uri.parse("tel:$number"))
                     call.addFlags(FLAG_ACTIVITY_NEW_TASK)
@@ -240,7 +239,7 @@ class Telephony : BroadcastReceiver() {
                     Manifest.permission.CALL_PHONE
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                Guardian.say(applicationContext, Log.ERROR, TAG, "ERROR: Not permitted to call")
+                Guardian.say(applicationContext, android.util.Log.ERROR, TAG, "ERROR: Not permitted to call")
             } else {
                 telecomManager.placeCall(uri, extras)
             }

@@ -1,11 +1,11 @@
 package altermarkive.guardian
 
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -32,6 +32,7 @@ class Guardian : Service() {
         return channelId
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     override fun onStartCommand(intent: Intent, flags: Int, startID: Int): Int {
         val now = System.currentTimeMillis()
         val app = resources.getString(R.string.app)

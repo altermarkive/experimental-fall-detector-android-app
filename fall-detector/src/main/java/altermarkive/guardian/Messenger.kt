@@ -9,7 +9,6 @@ import android.os.Build
 import android.provider.Telephony
 import android.telephony.SmsManager
 import android.telephony.SmsMessage
-import android.util.Log
 import androidx.core.content.ContextCompat
 import java.util.Locale
 
@@ -19,7 +18,7 @@ class Messenger : BroadcastReceiver() {
         if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION == action) {
             val bundle = intent.extras
             if (bundle == null) {
-                Guardian.say(context, Log.WARN, TAG, "Received an SMS broadcast without extras")
+                Guardian.say(context, android.util.Log.WARN, TAG, "Received an SMS broadcast without extras")
             } else {
                 val messages = bundle["pdus"] as Array<*>
                 val message = arrayOfNulls<SmsMessage>(
@@ -37,7 +36,7 @@ class Messenger : BroadcastReceiver() {
                 if (message.isNotEmpty()) {
                     val message0 = message[0]
                     if (message0 == null) {
-                        Guardian.say(context, Log.WARN, TAG, "Received an SMS without content")
+                        Guardian.say(context, android.util.Log.WARN, TAG, "Received an SMS without content")
                         return
                     }
                     var contact = message0.originatingAddress
@@ -61,7 +60,7 @@ class Messenger : BroadcastReceiver() {
                         }
                     }
                 } else {
-                    Guardian.say(context, Log.WARN, TAG, "Received empty SMS")
+                    Guardian.say(context, android.util.Log.WARN, TAG, "Received empty SMS")
                 }
             }
         }
@@ -77,7 +76,7 @@ class Messenger : BroadcastReceiver() {
                 val manager = SmsManager.getDefault()
                 manager.sendTextMessage(contact, null, message, null, null)
             } else {
-                Guardian.say(context, Log.ERROR, TAG, "ERROR: No permission to send an SMS")
+                Guardian.say(context, android.util.Log.ERROR, TAG, "ERROR: No permission to send an SMS")
             }
         }
 

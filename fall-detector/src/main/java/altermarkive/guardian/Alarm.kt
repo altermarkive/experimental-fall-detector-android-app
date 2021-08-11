@@ -5,7 +5,6 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Build
-import android.util.Log
 
 class Alarm private constructor(val context: Guardian) {
     private var pool: SoundPool
@@ -60,14 +59,14 @@ class Alarm private constructor(val context: Guardian) {
             if (contact != null && "" != contact) {
                 Guardian.say(
                     context,
-                    Log.WARN,
+                    android.util.Log.WARN,
                     TAG,
                     "Alerting the emergency phone number ($contact)"
                 )
                 Messenger.sms(context, Contact[context], "Fall Detected")
                 Telephony.call(context, contact)
             } else {
-                Guardian.say(context, Log.ERROR, TAG, "ERROR: Emergency phone number not set")
+                Guardian.say(context, android.util.Log.ERROR, TAG, "ERROR: Emergency phone number not set")
                 siren(context)
             }
         }

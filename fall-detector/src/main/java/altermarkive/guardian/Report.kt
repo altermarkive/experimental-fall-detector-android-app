@@ -6,7 +6,6 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
 import android.provider.Settings.Secure
-import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.math.BigInteger
@@ -108,7 +107,7 @@ object Report {
         return Secure.getString(context.contentResolver, Secure.ANDROID_ID)
     }
 
-    internal fun hash(text: String): String? {
+    private fun hash(text: String): String? {
         var hash: String? = null
         try {
             val md = MessageDigest.getInstance("SHA-256")
@@ -116,7 +115,7 @@ object Report {
             val integer = BigInteger(1, md.digest())
             hash = String.format("%1$032X", integer)
         } catch (exception: NoSuchAlgorithmException) {
-            val trace: String = Log.getStackTraceString(exception)
+            val trace: String = android.util.Log.getStackTraceString(exception)
             val message = String.format("SHA-256 is not available:\n%s", trace)
             Log.e(TAG, message)
         }

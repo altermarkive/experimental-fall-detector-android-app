@@ -10,7 +10,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
-import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
@@ -92,7 +91,7 @@ class About : Fragment(), View.OnClickListener {
             if (!granted) {
                 Guardian.say(
                     requireActivity().applicationContext,
-                    Log.ERROR,
+                    android.util.Log.ERROR,
                     TAG,
                     "ERROR: Permissions were not granted"
                 )

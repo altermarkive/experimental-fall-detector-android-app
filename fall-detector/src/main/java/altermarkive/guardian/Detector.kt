@@ -9,7 +9,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.util.Log
 import kotlin.math.sqrt
 
 class Detector private constructor() : SensorEventListener {
@@ -236,7 +235,7 @@ class Detector private constructor() : SensorEventListener {
                 lying[at] = 1.0
                 val context = this.context
                 if (context != null) {
-                    Guardian.say(context, Log.WARN, TAG, "Detected a fall")
+                    Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall")
                     alert(context)
                 }
             }
@@ -268,7 +267,7 @@ class Detector private constructor() : SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
         if (Sensor.TYPE_ACCELEROMETER == sensor.type) {
-            log(Log.INFO, "Accuracy of the accelerometer is now equal to $accuracy")
+            log(android.util.Log.INFO, "Accuracy of the accelerometer is now equal to $accuracy")
         }
     }
 
@@ -294,11 +293,11 @@ class Detector private constructor() : SensorEventListener {
         val name: String = sensor.name
         val delay: Int = sensor.minDelay
         val resolution: Float = sensor.resolution
-        log(Log.INFO, "Sensor: $vendor, $name, $delay [us], $resolution")
+        log(android.util.Log.INFO, "Sensor: $vendor, $name, $delay [us], $resolution")
         manager.registerListener(this, sensor, INTERVAL_MS * 1000)
     }
 
-    fun alert(context: Context) {
+    private fun alert(context: Context) {
         Alarm.alert(context)
     }
 }

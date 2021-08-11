@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.telephony.PhoneNumberUtils
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -49,7 +48,7 @@ class Contact : AppCompatActivity(), View.OnClickListener {
                 ) {
                     pickContact()
                 } else {
-                    Guardian.say(this, Log.ERROR, TAG, "ERROR: No permission to access contacts")
+                    Guardian.say(this, android.util.Log.ERROR, TAG, "ERROR: No permission to access contacts")
                 }
             }
             R.id.ok -> {
@@ -68,19 +67,19 @@ class Contact : AppCompatActivity(), View.OnClickListener {
         if (result.resultCode == RESULT_OK) {
             val data: Intent? = result.data
             if (data == null) {
-                Guardian.say(this, Log.ERROR, TAG, "ERROR: No data after contact selection")
+                Guardian.say(this, android.util.Log.ERROR, TAG, "ERROR: No data after contact selection")
             } else {
                 val selection = Phone.CONTACT_ID + "=?"
                 val outcome = data.data
                 if (outcome == null) {
-                    Guardian.say(this, Log.ERROR, TAG, "ERROR: No outcome after contact selection")
+                    Guardian.say(this, android.util.Log.ERROR, TAG, "ERROR: No outcome after contact selection")
                 } else {
                     val id = outcome.lastPathSegment
                     val arguments = arrayOf(id)
                     val resolver = contentResolver
                     val cursor = resolver.query(Phone.CONTENT_URI, null, selection, arguments, null)
                     if (cursor == null) {
-                        Guardian.say(this, Log.ERROR, TAG, "ERROR: Failed to query contacts")
+                        Guardian.say(this, android.util.Log.ERROR, TAG, "ERROR: Failed to query contacts")
                     } else {
                         val index = cursor.getColumnIndex(Phone.DATA)
                         if (cursor.moveToFirst()) {
