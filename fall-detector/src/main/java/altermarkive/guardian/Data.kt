@@ -54,7 +54,6 @@ class Data(private val guardian: Guardian) : Runnable {
 
     private fun flush() {
         while (queue.peek() != null) {
-            queue.poll()
             val db = find()
             val entry = queue.poll()
             entry ?: break
@@ -68,7 +67,7 @@ class Data(private val guardian: Guardian) : Runnable {
             Arrays.sort(unzipped)
             for (file in unzipped) {
                 val db = this.db
-                if ((db != null && db.path.endsWith(file))) {
+                if (db != null && db.path.endsWith(file)) {
                     continue
                 }
                 Storage.zip(root.path, file)
