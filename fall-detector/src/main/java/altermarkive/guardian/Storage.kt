@@ -1,6 +1,5 @@
 package altermarkive.guardian
 
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FilenameFilter
@@ -14,84 +13,6 @@ import java.util.zip.ZipOutputStream
 
 object Storage {
     private val TAG = Storage::class.java.name
-
-    internal fun size(prefix: String, file: String): Long {
-        val path = File(prefix, file)
-        return path.length()
-    }
-
-    internal fun readBinary(prefix: String, file: String, content: ByteArray): Boolean {
-        val path = File(prefix, file)
-        val input: InputStream = try {
-            FileInputStream(path)
-        } catch (exception: FileNotFoundException) {
-            val trace: String = android.util.Log.getStackTraceString(exception)
-            val message = String.format("Failed to open '%s' for reading:\n%s", file, trace)
-            Log.d(TAG, message)
-            return false
-        }
-        var result = true
-        try {
-            if (input.read(content) < content.size) {
-                val message = String.format("Mismatched buffer size for '%s'", file)
-                Log.d(TAG, message)
-                result = false
-            }
-        } catch (exception: IOException) {
-            val trace: String = android.util.Log.getStackTraceString(exception)
-            val message = String.format("Failed to read '%s':\n%s", file, trace)
-            Log.d(TAG, message)
-            result = false
-        }
-        try {
-            input.close()
-        } catch (exception: IOException) {
-            val trace: String = android.util.Log.getStackTraceString(exception)
-            val message = String.format("Failed to close '%s':\n%s", file, trace)
-            Log.d(TAG, message)
-            result = false
-        }
-        return result
-    }
-
-    private fun writeBinary(
-        prefix: String,
-        file: String,
-        content: ByteArray
-    ): Boolean {
-        val path = File(prefix, file)
-        if (File(prefix).freeSpace < content.size) {
-            val message = String.format("No space left for '%s'", file)
-            Log.d(TAG, message)
-            return false
-        }
-        val output: OutputStream = try {
-            FileOutputStream(path, false)
-        } catch (exception: FileNotFoundException) {
-            val trace: String = android.util.Log.getStackTraceString(exception)
-            val message = String.format("Failed to open '%s' for writing:\n%s", file, trace)
-            Log.d(TAG, message)
-            return false
-        }
-        var result = true
-        try {
-            output.write(content)
-        } catch (exception: IOException) {
-            val trace: String = android.util.Log.getStackTraceString(exception)
-            val message = String.format("Failed to write '%s':\n%s", file, trace)
-            Log.d(TAG, message)
-            result = false
-        }
-        try {
-            output.close()
-        } catch (exception: IOException) {
-            val trace: String = android.util.Log.getStackTraceString(exception)
-            val message = String.format("Failed to close '%s':\n%s", file, trace)
-            Log.d(TAG, message)
-            result = false
-        }
-        return result
-    }
 
     internal fun delete(prefix: String, file: String): Boolean {
         if (!File(prefix, file).delete()) {
@@ -107,35 +28,53 @@ object Storage {
     }
 
     internal fun zip(prefix: String, file: String): Boolean {
-        val size = size(prefix, file)
-        if (size >= Integer.MAX_VALUE) {
-            Log.e(TAG, "File to large to write to a ZIP file")
+        val path = File(prefix, file)
+        val input: InputStream = try {
+            FileInputStream(path)
+        } catch (exception: FileNotFoundException) {
+            val trace: String = android.util.Log.getStackTraceString(exception)
+            Log.d(TAG, "Failed to open '$file' for reading:\n$trace")
             return false
         }
-        val array = ByteArray(size.toInt())
-        if (!readBinary(prefix, file, array)) {
+        val output: OutputStream = try {
+            FileOutputStream(File(prefix, "$file.zip"))
+        } catch (exception: FileNotFoundException) {
+            val trace: String = android.util.Log.getStackTraceString(exception)
+            Log.d(TAG, "Failed to open '$file.zip' for writing:\n$trace")
             return false
         }
-        val zipped = ByteArrayOutputStream()
-        val stream = ZipOutputStream(zipped)
+        val zipped = ZipOutputStream(output)
         val entry = ZipEntry(file)
-        entry.size = size
         try {
-            stream.putNextEntry(entry)
-            stream.write(array, 0, size.toInt())
-            stream.closeEntry()
-            stream.close()
+            zipped.putNextEntry(entry)
+            val buffer = ByteArray(4096)
+            var size: Int
+            while (input.read(buffer).also { size = it } != -1) zipped.write(buffer, 0, size)
+            zipped.flush()
+            zipped.closeEntry()
+            zipped.close()
+            output.flush()
         } catch (exception: IOException) {
-            Log.e(TAG, "Failed to create a ZIP file:\n ${android.util.Log.getStackTraceString(exception)}")
+            val trace: String = android.util.Log.getStackTraceString(exception)
+            Log.e(TAG, "Failed to compress the file $file:\n${trace}")
             return false
         }
-        val content = zipped.toByteArray()
-        val name = "$file.zip"
-        if (!writeBinary(prefix, name, content)) {
-            Log.e(TAG, "Failed to write a ZIP file")
-            return false
+        var result = true
+        try {
+            input.close()
+        } catch (exception: IOException) {
+            val trace: String = android.util.Log.getStackTraceString(exception)
+            Log.e(TAG, "Failed to close the file $file:\n${trace}")
+            result = false
         }
-        return true
+        try {
+            output.close()
+        } catch (exception: IOException) {
+            val trace: String = android.util.Log.getStackTraceString(exception)
+            Log.e(TAG, "Failed to close the file $file.zip:\n${trace}")
+            result = false
+        }
+        return result
     }
 
     internal fun age(prefix: String, file: String): Long {

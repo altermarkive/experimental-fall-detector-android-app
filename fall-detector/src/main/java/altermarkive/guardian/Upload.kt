@@ -2,8 +2,9 @@ package altermarkive.guardian
 
 import android.content.Context
 import io.ipfs.api.IPFS
-import io.ipfs.api.NamedStreamable.ByteArrayWrapper
+import io.ipfs.api.NamedStreamable
 import io.ipfs.multiaddr.MultiAddress
+import java.io.File
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.Executors
@@ -21,28 +22,20 @@ class Upload internal constructor() {
             if (zipped != null && zipped.isNotEmpty()) {
                 Arrays.sort(zipped)
                 for (file in zipped) {
-                    val size = Storage.size(root, file)
-                    if (Int.MAX_VALUE < size) {
-                        Log.e(TAG, "Cannot read file $file into memory")
-                        continue
-                    }
-                    val array = ByteArray(size.toInt())
-                    if (!Storage.readBinary(root, file, array)) {
-                        Log.e(TAG, "Failed to read the file $file")
-                        continue
-                    }
-                    val wrapper = ByteArrayWrapper(file, array)
+                    val wrapper = NamedStreamable.FileWrapper(File(root, file))
                     try {
                         val result = ipfs.add(wrapper)[0]
-                        val message =
-                            "Uploaded: https://ipfs.infura.io/ipfs/${result.hash.toBase58()}"
-                        Messenger.sms(context, Contact[context], message)
+                        val url = "https://cloudflare-ipfs.com/ipfs/${result.hash.toBase58()}"
+                        val message = "Uploaded: $url"
+                        val contact = Contact[context]
+                        if (contact != null && "" != contact) {
+                            Messenger.sms(context, Contact[context], message)
+                        }
+                        Log.i(TAG, message)
                     } catch (exception: IOException) {
                         val failure = android.util.Log.getStackTraceString(exception)
                         Log.e(TAG, "Failed to upload the file $file:\n $failure")
-                        continue
                     }
-                    Storage.delete(root, file)
                 }
             }
         }

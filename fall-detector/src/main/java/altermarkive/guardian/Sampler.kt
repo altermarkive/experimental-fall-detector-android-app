@@ -51,8 +51,8 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         val list: List<Sensor> = manager.getSensorList(Sensor.TYPE_ALL)
         for (sensor in list) {
             when (sensor.type) {
-                Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_GYROSCOPE, Sensor.TYPE_MAGNETIC_FIELD, Sensor.TYPE_HEART_BEAT, Sensor.TYPE_LIGHT, Sensor.TYPE_PRESSURE, Sensor.TYPE_AMBIENT_TEMPERATURE, Sensor.TYPE_RELATIVE_HUMIDITY -> {
-                    manager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST)
+                Sensor.TYPE_ACCELEROMETER -> {
+                    manager.registerListener(this, sensor, Detector.INTERVAL_MS * 1000)
                 }
             }
         }

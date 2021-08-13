@@ -9,16 +9,24 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class Data(private val guardian: Guardian) : Runnable {
+class Data(private val guardian: Guardian) {
     private val root = guardian.applicationContext.filesDir
     private var last: String? = null
     private var db: SQLiteDatabase? = null
     private val queue = ConcurrentLinkedQueue<Batch>()
-    private var scheduler = Executors.newScheduledThreadPool(1)
 
     private fun initiate() {
         Upload()
-        scheduler.scheduleAtFixedRate(this, 5, 5, TimeUnit.SECONDS)
+        val scheduler = Executors.newScheduledThreadPool(2)
+        scheduler.scheduleAtFixedRate({ sweep() }, 5, 5, TimeUnit.SECONDS)
+        scheduler.scheduleAtFixedRate(
+            { Upload.go(guardian.applicationContext, root.path) },
+            5,
+            5,
+            TimeUnit.SECONDS
+        )
+        val infinite = Executors.newSingleThreadExecutor()
+        infinite.execute { flush() }
     }
 
     internal fun dispatch(type: Int, timestamp: Long, values: FloatArray) {
@@ -46,18 +54,15 @@ class Data(private val guardian: Guardian) : Runnable {
         queue.add(Batch("logs", content))
     }
 
-    override fun run() {
-        flush()
-        sweep()
-        Upload.go(guardian.applicationContext, root.path)
-    }
-
     private fun flush() {
-        while (queue.peek() != null) {
-            val db = find()
-            val entry = queue.poll()
-            entry ?: break
-            db.insert(entry.table, null, entry.content)
+        while (true) {
+            while (queue.peek() != null) {
+                val db = find()
+                val entry = queue.poll()
+                entry ?: break
+                db.insert(entry.table, null, entry.content)
+            }
+            Thread.sleep(1000)
         }
     }
 
@@ -70,8 +75,10 @@ class Data(private val guardian: Guardian) : Runnable {
                 if (db != null && db.path.endsWith(file)) {
                     continue
                 }
-                Storage.zip(root.path, file)
-                Storage.delete(root.path, file)
+                if (Storage.zip(root.path, file)) {
+                    Storage.delete(root.path, file)
+                    Storage.delete("${root.path}-journal", file)
+                }
             }
         }
         val week = 7 * 24 * 60 * 60 * 1000
