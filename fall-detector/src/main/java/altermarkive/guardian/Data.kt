@@ -77,7 +77,7 @@ class Data(private val guardian: Guardian) {
                 }
                 if (Storage.zip(root.path, file)) {
                     Storage.delete(root.path, file)
-                    Storage.delete("${root.path}-journal", file)
+                    Storage.delete(root.path, "${file}-journal")
                 }
             }
         }
@@ -87,9 +87,8 @@ class Data(private val guardian: Guardian) {
             Arrays.sort(zipped)
             for (file in zipped) {
                 if (Storage.age(root.path, file) + week < System.currentTimeMillis()) {
-                    continue
+                    Storage.delete(root.path, file)
                 }
-                Storage.delete(root.path, file)
             }
         }
     }
