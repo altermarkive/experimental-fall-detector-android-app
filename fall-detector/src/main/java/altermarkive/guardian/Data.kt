@@ -18,12 +18,12 @@ class Data(private val guardian: Guardian) {
     private fun initiate() {
         Upload()
         val scheduler = Executors.newScheduledThreadPool(2)
-        scheduler.scheduleAtFixedRate({ sweep() }, 5, 5, TimeUnit.SECONDS)
+        scheduler.scheduleAtFixedRate({ sweep() }, 0, 1, TimeUnit.HOURS)
         scheduler.scheduleAtFixedRate(
             { Upload.go(guardian.applicationContext, root.path) },
-            5,
-            5,
-            TimeUnit.SECONDS
+            0,
+            1,
+            TimeUnit.HOURS
         )
         val infinite = Executors.newSingleThreadExecutor()
         infinite.execute { flush() }
