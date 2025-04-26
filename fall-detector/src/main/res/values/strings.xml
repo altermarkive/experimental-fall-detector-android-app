@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app">Fall Detector</string>
+    <string name="about">About</string>
+    <string name="settings">Settings</string>
+    <string name="signals">Signals</string>
+    <string name="guardian">Guardian</string>
+    <string name="title">Emergency phone number</string>
+    <string name="summary">Please set the emergency phone number here</string>
+    <string name="contact">Contact</string>
+    <string name="phone">Emergency phone number</string>
+    <string name="search">Search Contacts</string>
+    <string name="accept">Accept</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="emergency">Emergency</string>
+    <string name="grant">Grant Permissions</string>
+    <string name="live">Live</string>
+    <string name="collection">Collection</string>
+    <string name="collecting">Share sensor data with the emergency contact (requires restart)</string>
+</resources>

@@ -1,0 +1,45 @@
+name: Automation Script
+
+on: [push]
+
+jobs:
+  pipeline:
+    name: Pipeline
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Initiating
+        uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - name: Establishing Version
+        id: version
+        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
+      - name: Installing Java Development Kit
+        uses: actions/setup-java@v2.1.0
+        with:
+          distribution: 'zulu'
+          java-version: 11
+      - name: Building APK
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          sed -i "s/0\.0\.0/${VERSION}/g" fall-detector/build.gradle
+          /bin/bash ./gradlew assembleDebug --stacktrace
+          mv fall-detector/build/outputs/apk/debug/fall-detector-debug.apk fall-detector/build/outputs/apk/debug/fall-detector.${VERSION}.apk
+      - name: Uploading Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: APK
+          path: fall-detector/build/outputs/apk/debug/fall-detector.${{ steps.version.outputs.version }}.apk
+      - name: Creating Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+          sudo apt-add-repository https://cli.github.com/packages
+          sudo apt update
+          sudo apt install gh
+          echo ${VERSION} | gh release create ${VERSION}
+          gh release upload ${VERSION} fall-detector/build/outputs/apk/debug/fall-detector.${VERSION}.apk

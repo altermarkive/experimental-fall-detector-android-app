@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="altermarkive.guardian">
+
+    <!-- Using network location provider -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Using GPS location provider -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Using the monitoring of the Internet connectivity -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Using calling a phone -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- Using WiFi state toggling -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- Using WebView and access to the internet-->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Using speaker volume control -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Using address book -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Using phone call monitoring -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Using caller notification and identification -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <!-- Using phone call answer -->
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <!-- Using bootstrap notification -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Using SMS receiving -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- Using SMS sending -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <!-- Using foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Using the body sensors -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <!-- Using the forced wake state -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.FallDetector">
+        <activity
+            android:name="altermarkive.guardian.Main"
+            android:label="@string/app"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="altermarkive.guardian.Contact"
+            android:label="@string/contact"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="altermarkive.guardian.Contact" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name="altermarkive.guardian.Boot"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Boot Receiver"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="altermarkive.guardian.Messenger"
+            android:enabled="true"
+            android:exported="true"
+            android:label="SMS Responder"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="altermarkive.guardian.Telephony"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Call Responder"
+            android:permission="android.permission.MODIFY_PHONE_STATE">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="altermarkive.guardian.Connectivity"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Connectivity Receiver"
+            android:permission="android.permission.ACCESS_NETWORK_STATE">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="altermarkive.guardian.Guardian"
+            android:exported="false"
+            android:label="Monitoring Service">
+            <intent-filter>
+                <action android:name="altermarkive.guardian.Guardian" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

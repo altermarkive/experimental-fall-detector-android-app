@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        android:title="Fall Detector Settings"
+        app:iconSpaceReserved="false">
+        <Preference
+            android:name="@string/summary"
+            android:key="@string/contact"
+            android:title="@string/title"
+            app:iconSpaceReserved="false">
+            <intent android:action="altermarkive.guardian.Contact" />
+        </Preference>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Data Collection Settings"
+        app:iconSpaceReserved="false">
+        <SwitchPreference
+            android:key="@string/collection"
+            android:title="@string/collecting"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

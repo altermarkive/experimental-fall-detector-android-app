@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:paddingBottom="?attr/actionBarSize"
+    tools:context="altermarkive.guardian.Signals">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        app:tabBackground="@android:color/white">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:tabBackground="@android:color/white"
+            app:tabIndicatorColor="@color/gray_600"
+            app:tabSelectedTextColor="@color/gray_800"
+            app:tabTextColor="@color/gray_600" />
+
+    </HorizontalScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:background="@android:color/white">
+
+        <altermarkive.guardian.Surface
+            android:id="@+id/surface"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="10dp"
+            android:background="@color/white"
+            android:checked="true"
+            android:padding="20dp"
+            android:text="@string/live"
+            android:textColor="@android:color/black" />
+
+    </FrameLayout>
+
+</LinearLayout>
